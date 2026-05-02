@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Companies - Nohria Dies and Technology</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        nav {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        nav h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        nav div {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        nav a, nav span {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: #764ba2;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #333;
+            font-size: 28px;
+        }
+        
+        .back-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .clear-button {
+            background: #f0f0f0;
+            color: #333;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+        }
+        
+        .clear-button:hover {
+            background: #e0e0e0;
+        }
+        
+        .search-info {
+            color: #666;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        
+        .search-info strong {
+            color: #667eea;
+        }
+        
+        .companies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .company-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 5px solid #667eea;
+        }
+        
+        .company-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .company-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        
+        .company-card p {
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .company-card .label {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .company-card a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+            display: inline-block;
+        }
+        
+        .company-card a:hover {
+            color: #764ba2;
+        }
+        
+        .empty-state {
+            background: white;
+            padding: 60px 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #999;
+        }
+        
+        .empty-state h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .no-results {
+            background: white;
+            padding: 60px 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #999;
+        }
+        
+        .no-results h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/" class="back-button">📊 Nohria Dies</a>
+            <div>
+                {% if current_user.is_authenticated %}
+                  <span>👤 {{ current_user.username }}</span>
+                    <a href="/auth/logout">Logout</a>
+                {% else %}
+                    <a href="/auth/login">Login</a>
+                    <a href="/auth/register">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+        
+      
+        
+        <!-- Search Section -->
+        <div class="search-section">
+            <form method="GET" class="search-container">
+                <input 
+                    type="text" 
+                    name="search" 
+                    class="search-input" 
+                    placeholder="🔍 Search company by name..." 
+                    value="{{ search_query }}"
+                >
+                <button type="submit" class="search-button">Search</button>
+                {% if search_query %}
+                    <a href="/view-all-companies" class="clear-button">Clear</a>
+                {% endif %}
+            </form>
+            
+            {% if search_query %}
+                <div class="search-info">
+                    Search results for: <strong>"{{ search_query }}"</strong> ({{ companies|length }} result{% if companies|length != 1 %}s{% endif %})
+                </div>
+            {% else %}
+                <div class="search-info">
+                    Total: <strong>{{ companies|length }}</strong> compan{% if companies|length == 1 %}y{% else %}ies{% endif %} (Sorted A-Z)
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Companies Grid -->
+        {% if companies %}
+            <div class="companies-grid">
+                {% for company in companies %}
+                    <div class="company-card">
+                        <h3>{{ company.company_name }}</h3>
+                        <p><span class="label">Location:</span> {{ company.location }}</p>
+                        <p><span class="label">State:</span> {{ company.state }} ({{ company.state_code }})</p>
+                        <p><span class="label">GST No:</span> {{ company.gst_no }}</p>
+                        <p><span class="label">Email:</span> {{ company.email if company.email else 'N/A' }}</p>
+                        <a href="/company/{{ company.id }}">View Details →</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            {% if search_query %}
+                <div class="no-results">
+                    <h3>No Companies Found</h3>
+                    <p>No companies match your search for "<strong>{{ search_query }}</strong>"</p>
+                    <a href="/view-all-companies" class="clear-button" style="margin-top: 20px;">Clear Search</a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No Companies Yet</h3>
+                    <p>Get started by creating your first company</p>
+                    <a href="/create-company" class="back-button" style="margin-top: 20px;">Create Company</a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+/* Overall container */
+.quotation-edit {
+    max-width: 1000px;
+    margin: 40px auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Card styling */
+.quotation-edit .card {
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    padding: 40px;
+}
+
+/* Title */
+.form-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Section headings */
+.section-title {
+    margin-top: 30px;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 6px;
+}
+
+/* Form fields */
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group label {
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+}
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 12px 14px;
+    font-size: 15px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0,123,255,0.4);
+    outline: none;
+}
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+select.form-control {
+    appearance: none;
+    background: #fff url("data:image/svg+xml;utf8,<svg fill='%23007bff' height='20' viewBox='0 0 24 24' width='20'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* Table styling */
+.table {
+    margin-top: 15px;
+    border: 1px solid #ccc;
+}
+.table th {
+    text-align: center;
+    font-weight: 600;
+    background: #007bff;
+    color: #fff;
+    font-size: 14px;
+}
+.table td {
+    vertical-align: middle;
+    font-size: 14px;
+}
+.table-hover tbody tr:hover {
+    background-color: #f9f9f9;
+}
+.table td input {
+    width: 100%;
+    padding: 6px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* Action buttons */
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    border: none;
+    font-weight: 700;
+    padding: 12px 24px;
+    color: #000;
+    border-radius: 6px;
+}
+.btn-secondary {
+    background: #6c757d;
+    border: none;
+    font-weight: 600;
+    padding: 12px 24px;
+    color: #fff;
+    border-radius: 6px;
+}
+.btn-success {
+    background: #28a745;
+    border: none;
+    font-weight: 600;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 6px;
+}
+.btn-danger {
+    background: #dc3545;
+    border: none;
+    font-weight: 600;
+    padding: 6px 12px;
+    color: #fff;
+    border-radius: 4px;
+}
+.back-button {
+    text-align: center;
+    margin-top: 20px;
+}
+.btn-outline-primary {
+    border: 1px solid #007bff;
+    color: #007bff;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+.btn-outline-primary:hover {
+    background: #007bff;
+    color: #fff;
+}
+</style>
+
+<div class="back-button mt-4">
+    <a href="{{ url_for('sales.quotation_home') }}" class="btn btn-outline-primary">⬅ Back</a>
+</div>
+
+<div class="quotation-edit container mt-5">
+    <div class="card p-4">
+        <h2 class="form-title">✏️ Edit Quotation {{ quotation.quotation_number }}</h2>
+        <form method="POST">
+            <!-- Header fields -->
+            <div class="form-group mb-3">
+                <label for="supply_date">Supply Date</label>
+                <input type="date" name="supply_date" class="form-control" value="{{ quotation.supply_date }}">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="terms_and_conditions">Terms & Conditions</label>
+                <textarea name="terms_and_conditions" class="form-control">{{ quotation.terms_and_conditions }}</textarea>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="customer_company_id">Customer</label>
+                <select name="customer_company_id" class="form-control">
+                    {% for c in customers %}
+                    <option value="{{ c.id }}" {% if c.id == quotation.customer_company_id %}selected{% endif %}>
+                        {{ c.company_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="own_company_id">Own Company</label>
+                <select name="own_company_id" class="form-control">
+                    {% for o in own_companies %}
+                    <option value="{{ o.id }}" {% if o.id == quotation.own_company_id %}selected{% endif %}>
+                        {{ o.company_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Items Table -->
+            <h4 class="section-title">Items</h4>
+            <table class="table table-striped table-hover" id="items-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
+                        <th>HSN No.</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in quotation.items %}
+                    <tr>
+                        <td><input type="text" name="item_description" class="form-control" value="{{ item.description }}"></td>
+                        <td><input type="number" step="0.01" name="item_qty" class="form-control" value="{{ item.qty }}" oninput="updateRowTotal(this)"></td>
+                        <td><input type="number" step="0.01" name="item_price" class="form-control" value="{{ item.price }}" oninput="updateRowTotal(this)"></td>
+                        <td><input type="text" name="item_total" class="form-control" value="{{ item.qty * item.price }}" readonly></td>
+                        <td><input type="text" name="item_hsn" class="form-control" value="{{ item.hsn_no }}"></td>
+                        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-success mb-3" onclick="addRow()">➕ Add Item</button>
+
+            <!-- Action buttons -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-warning">💾 Save Changes</button>
+                <a href="{{ url_for('sales.view_quotation', quotation_id=quotation.id) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function addRow() {
+    const table = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+    const row = table.insertRow();
+    row.innerHTML = `
+        <td><input type="text" name="item_description" class="form-control"></td>
+        <td><input type="number" step="0.01" name="item_qty" class="form-control" oninput="updateRowTotal(this)"></td>
+        <td><input type="number" step="0.01" name="item_price" class="form-control" oninput="updateRowTotal(this)"></td>
+        <td><input type="text" name="item_total" class="form-control" readonly></td>
+        <td><input type="text" name="item_hsn" class="form-control"></td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
+    `;
+}
+
+function removeRow(button) {
+    button.closest("tr").remove();
+}
+
+function updateRowTotal(element) {
+    const row = element.closest("tr");
+    const qty = parseFloat(row.querySelector('input[name="item_qty"]').value) || 0;
+    const price = parseFloat(row.querySelector('input[name="item_price"]').value) || 0;
+    const total = qty * price;
+    row.querySelector('input[name="item_total"]').value = total.toFixed(2);
+}
+</script>
+{% endblock %}

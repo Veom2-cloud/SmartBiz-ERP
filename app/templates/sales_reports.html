@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Sales Reports{% endblock %}
+
+{% block content %}
+<style>
+  /* General page styling */
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f9fafc;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Report container */
+.report-buttons {
+    display: flex;
+    gap: 20px;
+    margin: 20px 0;
+    justify-content: center;
+}
+
+/* Buttons */
+.report-buttons .btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #003d80);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #495057, #343a40);
+    transform: translateY(-2px);
+}
+
+/* Tables */
+.table {
+    width: 90%;
+    margin: 30px auto;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead {
+    background: #007bff;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table th, .table td {
+    padding: 14px 18px;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.table tbody tr:hover {
+    background: #f1f5fb;
+    transition: background 0.3s ease;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .report-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    .table {
+        width: 100%;
+        font-size: 14px;
+    }
+}
+
+</style>
+
+<div class="container">
+  <h2 style="text-align: center;">Sales Reports</h2>
+
+  <div class="report-buttons">
+    <!-- Button A: GST Tax Report -->
+    <form action="{{ url_for('sales.gst_tax_report') }}" method="get">
+        <button type="submit" class="btn btn-primary">
+            GST Tax Report (Month & Year)
+        </button>
+    </form>
+
+    <!-- Button B: Base Billing Report -->
+    <form action="{{ url_for('sales.base_billing_report') }}" method="get">
+        <button type="submit" class="btn btn-secondary">
+            Base Billing Report (Month & Year)
+        </button>
+    </form>
+</div> 
+{% endblock %}

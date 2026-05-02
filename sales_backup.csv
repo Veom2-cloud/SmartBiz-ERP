@@ -1,0 +1,5 @@
+invoice_number,my_company_id,customer_company_id,invoice_date,subtotal,total_amount,payment_status
+213,8,9,2026-03-29,16236.0,19158.48,Pending
+11222,8,9,2026-03-29,1332.0,1571.76,Pending
+123444422,8,9,2026-03-31,1033469.0,1219493.42,Pending
+123,8,9,2026-03-31,4920300.0,5805954.0,Pending

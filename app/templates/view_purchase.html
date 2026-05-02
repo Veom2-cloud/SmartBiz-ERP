@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Purchase {{ purchase.invoice_number }}{% endblock %}
+
+{% block content %}
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f7f8fb; }
+  .container { max-width: 900px; margin: 0 auto; background: white; padding: 32px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+  .header-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .back-btn { background:#667eea; color:white; padding:8px 16px; border-radius:6px; text-decoration:none; font-weight:600; }
+  .invoice-title { font-size:22px; font-weight:700; color:#1e3a8a; }
+  .invoice-subtitle { font-size:14px; color:#555; }
+  .header-row { display:flex; justify-content:space-between; margin-top:20px; }
+  .company-section { width:45%; background:#f9f9f9; padding:16px; border-radius:8px; }
+  .invoice-meta { margin-top:20px; }
+  .invoice-meta-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .items-table { width:100%; border-collapse:collapse; margin-top:20px; }
+  .items-table th, .items-table td { border:1px solid #eee; padding:8px; text-align:left; }
+  .items-table th { background:#f0f2f8; font-weight:600; }
+  .sno { text-align:center; }
+  .taxable-amount { text-align:right; font-weight:600; }
+  .totals-section { margin-top:20px; }
+  .totals-row, .grand-total { display:flex; justify-content:space-between; padding:6px 0; }
+  .grand-total { font-size:18px; font-weight:700; border-top:2px solid #eee; margin-top:10px; padding-top:10px; }
+  .amount { color:#28a745; font-weight:700; }
+  .amount-in-words { margin-top:10px; font-style:italic; color:#555; }
+</style>
+
+<div class="container">
+  <div class="header-bar">
+    <a href="{{ url_for('purchase.purchases_home') }}" class="back-btn">← Back to Purchases</a>
+    <div>
+      <div class="invoice-title">PURCHASE INVOICE</div>
+      <div class="invoice-subtitle">Goods & Services Tax Compliant</div>
+    </div>
+    <a href="{{ url_for('purchase.edit_purchase', purchase_id=purchase.id) }}" class="back-btn">✏️ Edit</a>
+  </div>
+
+  <h1 style="color:#1e3a8a; margin-bottom:25px; font-size:24px;">#{{ purchase.invoice_number }}</h1>
+
+  <div class="header-row">
+    <div class="company-section">
+      <h3>Buyer Details</h3>
+      <p><strong>{{ purchase.my_company.company_name if purchase.my_company else '-' }}</strong></p>
+      <p>GSTIN: {{ purchase.my_company.gst_no if purchase.my_company else '-' }}</p>
+      <p>State: {{ purchase.my_company.state if purchase.my_company else '-' }} ({{ purchase.my_company.state_code if purchase.my_company else '-' }})</p>
+    </div>
+
+    <div class="company-section">
+      <h3>Supplier Details</h3>
+      <p><strong>{{ purchase.supplier_company.company_name if purchase.supplier_company else '-' }}</strong></p>
+      <p>GSTIN: {{ purchase.supplier_company.gst_no if purchase.supplier_company else '-' }}</p>
+      <p>State: {{ purchase.supplier_company.state if purchase.supplier_company else '-' }} ({{ purchase.supplier_company.state_code if purchase.supplier_company else '-' }})</p>
+    </div>
+  </div>
+
+  <div class="invoice-meta">
+    <div class="invoice-meta-grid">
+      <p><strong>Invoice Date:</strong> {{ purchase.invoice_date.strftime('%d/%m/%Y') if purchase.invoice_date else '-' }}</p>
+      <p><strong>Invoice No:</strong> {{ purchase.invoice_number }}</p>
+      <p><strong>Place of Supply:</strong> {{ purchase.supplier_company.state if purchase.supplier_company else '-' }}</p>
+       <div><strong>PO Number:</strong> {{ purchase.po_number or '-' }}</div>
+  <div><strong>PO Date:</strong> {{ purchase.po_date.strftime('%d-%m-%Y') if purchase.po_date else '-' }}</div>
+  <div><strong>Transporter:</strong> {{ purchase.transporter or '-' }}</div>
+  <div><strong>Booking:</strong> {{ purchase.booking or '-' }}</div>
+  <div><strong>MSME Registration No:</strong> {{ purchase.msme_registration_no or '-' }}</div>
+  <div><strong>Acknowledgement No:</strong> {{ purchase.ack_no or '-' }}</div>
+  <div><strong>IRN No:</strong> {{ purchase.irn_no or '-' }}</div>
+    </div>
+  </div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>S.No</th><th>Description of Goods</th><th>HSN No</th><th>Qty</th><th>Price</th><th style="text-align:right;">Taxable Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in purchase.items %}
+      <tr>
+        <td class="sno">{{ loop.index }}</td>
+        <td>{{ item.description }}</td>
+        <td>{{ item.hsn_no }}</td>
+        <td>{{ item.qty }}</td>
+        <td>₹{{ '%.2f'|format(item.price|float) }}</td>
+        <td class="taxable-amount">₹{{ '%.2f'|format(item.taxable_amount|float) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center; color:#666;">No items found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Payments</h3>
+  <table class="items-table">
+    <thead><tr><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
+    <tbody>
+      {% for payment in purchase.payments %}
+      <tr>
+        <td>₹{{ '%.2f'|format(payment.amount|float) }}</td>
+        <td>{{ payment.method }}</td>
+        <td>{{ payment.date.strftime('%d/%m/%Y') }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" style="text-align:center; color:#666;">No payments recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top:12px;">
+    <strong>Total Paid:</strong> ₹{{ '%.2f'|format(purchase.amount_paid|float) }}<br>
+    <strong>Pending:</strong> ₹{{ '%.2f'|format(purchase.pending_amount|float) }}<br>
+    <strong>Status:</strong> {{ purchase.payment_status }}
+  </div>
+
+  <div class="totals-section">
+    <div class="totals-row"><span>Subtotal:</span><span>₹{{ '%.2f'|format(purchase.subtotal|float) }}</span></div>
+    {% if purchase.cgst|default(0)|float > 0 %}
+    <div class="totals-row"><span>CGST:</span><span>₹{{ '%.2f'|format(purchase.cgst|float) }}</span></div>
+    {% endif %}
+    {% if purchase.sgst|default(0)|float > 0 %}
+    <div class="totals-row"><span>SGST:</span><span>₹{{ '%.2f'|format(purchase.sgst|float) }}</span></div>
+    {% endif %}
+    {% if purchase.igst|default(0)|float > 0 %}
+    <div class="totals-row"><span>IGST:</span><span>₹{{ '%.2f'|format(purchase.igst|float) }}</span></div>
+    {% endif %}
+    
+    <div class="totals-row"><span>Total Tax:</span><span class="amount">₹{{ '%.2f'|format(purchase.total_tax|float) }}</span></div>
+        {% if purchase.freight_charges|default(0)|float > 0 %}
+    <div class="totals-row">
+        <span>Freight Charges:</span>
+        <span>₹{{ '%.2f'|format(purchase.freight_charges|float) }}</span>
+    </div>
+    {% endif %}
+    <div class="grand-total"><span>Grand Total:</span><span class="amount">₹{{ '%.2f'|format(purchase.total_amount|float) }}</span></div>
+    <div class="amount-in-words">Amount in Words: {{ purchase.total_amount_in_words or (purchase.total_amount|float|round(2)|string ~ ' Rupees Only') }}</div>
+  </div>
+</div>
+{% endblock %}

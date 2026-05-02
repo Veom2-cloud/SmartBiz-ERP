@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}Edit Invoice {{ sale.invoice_number }}{% endblock %}
+
+{% block content %}
+<style>
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  }
+  h2 { margin-bottom: 20px; color: #333; font-size: 24px; font-weight: 600; }
+  label { display:block; margin-top:12px; margin-bottom:6px; font-weight:500; color:#444; }
+  input, select { width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-size:14px; }
+  table { width:100%; border-collapse:collapse; margin-top:20px; }
+  th, td { border:1px solid #eee; padding:8px; text-align:left; }
+  th { background:#f0f2f8; font-weight:600; }
+  .primary-btn { background:#28a745; color:white; padding:10px 20px; border-radius:6px; font-weight:600; border:none; cursor:pointer; }
+  .back-button { background:#667eea; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:600; }
+  .form-actions { margin-top:20px; display:flex; gap:12px; }
+  .error { color:#d9534f; margin-bottom:12px; font-weight:500; }
+  h3 {
+  margin-top: 24px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 6px;
+}
+
+input[type="text"], input[type="date"], input[type="datetime-local"], input[type="number"] {
+  margin-bottom: 12px;
+  transition: border-color 0.2s ease;
+}
+
+input:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 4px rgba(102, 126, 234, 0.4);
+}
+
+  .add-btn { background:#007bff; color:white; padding:6px 12px; border-radius:6px; border:none; cursor:pointer; margin-top:10px; }
+</style>
+<body>
+
+<div class="container">
+  <h2>Edit Invoice</h2>
+
+  {% if error %}
+    <div class="error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" id="invoice-form">
+   <!-- My Company -->
+<!-- My Company -->
+<label for="myCompany">My Company</label>
+<select name="my_company_id" id="myCompany" onchange="fillMyCompanyDetails()">
+  {% for c in companies %}
+    <option value="{{ c.id }}"
+            data-state-code="{{ c.state_code }}"
+            data-name="{{ c.company_name }}"
+            data-gst="{{ c.gst_no }}"
+            data-state="{{ c.state }}"
+            {% if sale.my_company_id == c.id %}selected{% endif %}>
+      {{ c.company_name }}
+    </option>
+  {% endfor %}
+</select>
+
+<!-- Supplier / Customer Company -->
+<label for="customerCompany">Supplier Company</label>
+<select name="customer_company_id" id="customerCompany" onchange="fillCustomerDetails()">
+  {% for c in companies %}
+    <option value="{{ c.id }}"
+            data-state-code="{{ c.state_code }}"
+            data-name="{{ c.company_name }}"
+            data-gst="{{ c.gst_no }}"
+            data-state="{{ c.state }}"
+            {% if sale.customer_company_id == c.id %}selected{% endif %}>
+      {{ c.company_name }}
+    </option>
+  {% endfor %}
+</select>
+
+
+<input type="hidden" id="myStateCode" name="my_state_code" value="{{ sale.my_state_code or '' }}">
+<input type="hidden" id="customerStateCode" name="customer_state_code" value="{{ sale.customer_state_code or '' }}">
+    <!-- Invoice Details -->
+    <label>Invoice Number</label>
+    <input type="text" name="invoice_number" value="{{ sale.invoice_number }}" required>
+
+    <label>Invoice Date</label>
+    <input type="date" name="invoice_date" value="{{ sale.invoice_date.isoformat() if sale.invoice_date else '' }}">
+
+    <h3>Additional Invoice Details</h3>
+    <label>PO Number</label>
+    <input type="text" name="po_number" value="{{ sale.po_number or '' }}">
+    <label>PO Date</label>
+    <input type="date" name="po_date" value="{{ sale.po_date.isoformat() if sale.po_date else '' }}">
+    <label>Challan No</label>
+    <input type="text" name="challan_no" value="{{ sale.challan_no or '' }}">
+    <label>Challan Date</label>
+    <input type="date" name="challan_date" value="{{ sale.challan_date.isoformat() if sale.challan_date else '' }}">
+    <label>Date & Time of Supply</label>
+    <input type="datetime-local" name="supply_datetime" value="{{ sale.supply_datetime.isoformat() if sale.supply_datetime else '' }}">
+    <label>E‑Way Bill</label>
+    <input type="text" name="eway_bill" value="{{ sale.eway_bill or '' }}">
+
+    <!-- Items -->
+    <h3>Items</h3>
+    <table id="items-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>HSN No</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Taxable Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in sale.items %}
+        <tr>
+          <td><input type="text" name="items[{{ loop.index }}][description]" value="{{ item.description }}"></td>
+          <td><input type="text" name="items[{{ loop.index }}][hsn_no]" value="{{ item.hsn_no }}"></td>
+          <td><input type="number" step="0.01" name="items[{{ loop.index }}][qty]" value="{{ item.qty }}"></td>
+          <td><input type="number" step="0.01" name="items[{{ loop.index }}][price]" value="{{ item.price }}"></td>
+          <td><input type="number" step="0.01" name="items[{{ loop.index }}][taxable_amount]" value="{{ item.taxable_amount }}" readonly></td>
+
+    <td><button type="button" onclick="removeItem(this)">×</button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="button" class="add-btn" onclick="addItem()">➕ Add Item</button>
+
+    <!-- Totals -->
+    <label>Subtotal</label>
+    <input type="number" step="0.01" name="subtotal" readonly value="{{ sale.subtotal|float|round(2) }}">
+
+    <label>CGST</label>
+    <input type="number" step="0.01" name="cgst_amount" readonly value="{{ sale.cgst|float|round(2) }}">
+
+    <label>SGST</label>
+    <input type="number" step="0.01" name="sgst_amount" readonly value="{{ sale.sgst|float|round(2) }}">
+
+    <label>IGST</label>
+    <input type="number" step="0.01" name="igst_amount" readonly value="{{ sale.igst|float|round(2) }}">
+
+    <label>Total Tax</label>
+    <input type="number" step="0.01" name="total_tax" readonly value="{{ sale.total_tax|float|round(2) }}">
+
+    <label>Freight Charges</label>
+    <input type="number" step="0.01" name="freight_charges" value="{{ sale.freight_charges|float|round(2) }}">
+
+    <label>Total Amount</label>
+    <input type="number" step="0.01" name="total_amount" readonly value="{{ sale.total_amount|float|round(2) }}">
+
+    <!-- Payments -->
+    <h3>Payments</h3>
+    <ul>
+      {% for p in sale.payments %}
+        <li>₹{{ '%.2f'|format(p.amount|float) }} via {{ p.method }} on {{ p.date.strftime('%d/%m/%Y') }}</li>
+      {% else %}
+        <li style="color:#666;">No payments recorded.</li>
+      {% endfor %}
+    </ul>
+
+    <div>
+      <strong>Total Paid:</strong> ₹{{ '%.2f'|format(sale.amount_received|float) }}<br>
+      <strong>Pending:</strong> ₹{{ '%.2f'|format(sale.pending_amount|float) }}<br>
+      <strong>Status:</strong> {{ sale.payment_status }}
+    </div>
+
+    <h4>Add Payment</h4>
+    <div>
+      <input type="number" step="0.01" name="payment_amount" placeholder="Amount" max="{{ sale.pending_amount }}">
+      <input type="text" name="payment_method" placeholder="Method (Cash, Cheque, UPI)">
+      <input type="date" name="payment_date">
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="primary-btn">💾 Save Changes</button>
+      <a href="{{ url_for('sales.view_sale', sale_id=sale.id) }}" class="back-button">✖ Cancel</a>
+    </div>
+  </form>
+</div>
+</body>
+<script>
+function fillMyCompanyDetails() {
+  const select = document.getElementById('myCompany');
+  const option = select.options[select.selectedIndex];
+  if (option && option.value) {
+    document.getElementById('myStateCode').value = option.getAttribute('data-state-code') || '';
+    recalcTotals();
+  }
+}
+
+function fillCustomerDetails() {
+  const select = document.getElementById('customerCompany');
+  const option = select.options[select.selectedIndex];
+  if (option && option.value) {
+    document.getElementById('customerStateCode').value = option.getAttribute('data-state-code') || '';
+    recalcTotals();
+  }
+}
+
+function addItem() {
+  const tbody = document.querySelector('#items-table tbody');
+  const index = tbody.querySelectorAll('tr').length + 1;
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="text" name="items[${index}][description]"></td>
+    <td><input type="text" name="items[${index}][hsn_no]"></td>
+    <td><input type="number" step="1" name="items[${index}][qty]" value="0"></td>
+    <td><input type="number" step="0.01" name="items[${index}][price]" value="0"></td>
+    <td><input type="number" step="0.01" name="items[${index}][taxable_amount]" value="0" readonly></td>
+  `;
+  tbody.appendChild(row);
+  row.querySelectorAll('input').forEach(input => input.addEventListener('input', recalcTotals));
+}
+function recalcTotals() {
+  let subtotal = 0;
+  document.querySelectorAll('#items-table tbody tr').forEach(row => {
+    const qty = parseFloat(row.querySelector('[name*="[qty]"]').value) || 0;
+    const price = parseFloat(row.querySelector('[name*="[price]"]').value) || 0;
+    const taxable = qty * price;
+    row.querySelector('[name*="[taxable_amount]"]').value = taxable.toFixed(2);
+    subtotal += taxable;
+  });
+
+  // Add freight charges
+  const freight = parseFloat(document.querySelector('[name="freight_charges"]')?.value) || 0;
+  subtotal += freight;
+  document.querySelector('[name="subtotal"]').value = subtotal.toFixed(2);
+
+  // GST logic based on state codes
+  const myStateCode = document.getElementById('myStateCode')?.value?.trim();
+const customerStateCode = document.getElementById('customerStateCode')?.value?.trim();
+console.log(myStateCode);
+console.log(customerStateCode);
+let cgst = 0, sgst = 0, igst = 0;
+if (myStateCode && customerStateCode) {
+  if (myStateCode === customerStateCode) {
+    cgst = subtotal * 0.09;
+    sgst = subtotal * 0.09;
+  } else {
+    igst = subtotal * 0.18;
+  }
+}
+  // Update tax fields
+  document.querySelector('[name="cgst_amount"]').value = cgst.toFixed(2);
+  document.querySelector('[name="sgst_amount"]').value = sgst.toFixed(2);
+  document.querySelector('[name="igst_amount"]').value = igst.toFixed(2);
+console.log(cgst);
+  const totalTax = cgst + sgst + igst;
+  document.querySelector('[name="total_tax"]').value = totalTax.toFixed(2);
+
+  // Grand total = subtotal + tax
+  document.querySelector('[name="total_amount"]').value = (subtotal + totalTax).toFixed(2);
+}
+
+// Add new item row dynamically
+
+
+// Remove item row
+function removeItem(button) {
+  const row = button.closest('tr');
+  row.remove();
+  recalcTotals();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Run once to populate hidden state codes from preselected options
+  fillMyCompanyDetails();
+  fillCustomerDetails();
+
+  // Attach listeners for recalculation
+  document.querySelectorAll('#items-table input, [name="freight_charges"]').forEach(input => {
+    input.addEventListener('input', recalcTotals);
+  });
+
+  // Initial calculation
+  recalcTotals();
+});
+
+</script>
+{% endblock %}

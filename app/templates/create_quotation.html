@@ -1,0 +1,235 @@
+<html>
+    <head>
+        <style>
+        /* General page styling */
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f9fafc;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Container */
+.container {
+    max-width: 1000px;
+    margin: 30px auto;
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+/* Headings */
+h2, h4 {
+    color: #0056b3;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* Form styling */
+.form-group {
+    margin-bottom: 15px;
+}
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    transition: border-color 0.3s ease;
+}
+.form-control:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 6px rgba(0,123,255,0.3);
+}
+
+/* Items section */
+.item-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.item-row input {
+    flex: 1;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff;
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #003d80);
+    transform: translateY(-2px);
+}
+.btn-info {
+    background: linear-gradient(135deg, #17a2b8, #117a8b);
+    color: #fff;
+}
+.btn-info:hover {
+    background: linear-gradient(135deg, #117a8b, #0c5c66);
+    transform: translateY(-2px);
+}
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: #fff;
+}
+.btn-success:hover {
+    background: linear-gradient(135deg, #1e7e34, #155d27);
+    transform: translateY(-2px);
+}
+
+/* Tables */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.table thead {
+    background: #007bff;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.table th, .table td {
+    padding: 12px 15px;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+}
+.table tbody tr:hover {
+    background: #f1f5fb;
+    transition: background 0.3s ease;
+}
+.table tbody tr:nth-child(even) {
+    background: #fdfdfd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .item-row {
+        flex-direction: column;
+    }
+    .table, .table thead, .table tbody, .table th, .table td, .table tr {
+        display: block;
+        width: 100%;
+    }
+    .table tr {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px;
+    }
+    .table th {
+        display: none;
+    }
+    .table td {
+        text-align: left;
+        padding: 8px;
+        border: none;
+    }
+}
+</style>
+    </head>
+    <body>
+{% extends "base.html" %}
+{% block content %}
+<div class="quotation-edit container mt-5">
+    <div class="card p-4">
+        <h2 class="form-title">➕ Create Quotation {{ next_number }}</h2>
+        <form method="POST">
+            <input type="hidden" name="quotation_number" value="{{ next_number }}">
+
+            <div class="form-group mb-3">
+                <label for="supply_date">Supply Date</label>
+                <input type="date" name="supply_date" class="form-control" required>
+            </div>
+
+           <div class="form-group mb-3">
+    <label for="terms_and_conditions">Terms & Conditions</label>
+    <textarea name="terms_and_conditions" class="form-control" placeholder="Enter each condition on a new line"></textarea>
+</div>
+
+            <div class="form-group mb-3">
+                <label for="customer_company_id">Customer</label>
+                <select name="customer_company_id" class="form-control">
+                    {% for c in customers %}
+                    <option value="{{ c.id }}">{{ c.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="own_company_id">Own Company</label>
+                <select name="own_company_id" class="form-control">
+                    {% for o in own_companies %}
+                    <option value="{{ o.id }}">{{ o.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <h4 class="section-title">Items</h4>
+            <table class="table table-striped" id="items-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
+                        <th>HSN No.</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button type="button" class="btn btn-success mb-3" onclick="addRow()">➕ Add Item</button>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-warning">💾 Save</button>
+                <a href="{{ url_for('sales.quotation_home') }}" class="btn btn-secondary">⬅ Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function addRow() {
+    const table = document.getElementById("items-table").getElementsByTagName("tbody")[0];
+    const row = table.insertRow();
+    row.innerHTML = `
+        <td><input type="text" name="item_description" class="form-control"></td>
+        <td><input type="number" step="0.01" name="item_qty" class="form-control" oninput="updateRowTotal(this)"></td>
+        <td><input type="number" step="0.01" name="item_price" class="form-control" oninput="updateRowTotal(this)"></td>
+        <td><input type="text" name="item_total" class="form-control" readonly></td>
+        <td><input type="text" name="item_hsn" class="form-control"></td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
+    `;
+}
+function removeRow(button) { button.closest("tr").remove(); }
+function updateRowTotal(element) {
+    const row = element.closest("tr");
+    const qty = parseFloat(row.querySelector('input[name="item_qty"]').value) || 0;
+    const price = parseFloat(row.querySelector('input[name="item_price"]').value) || 0;
+    row.querySelector('input[name="item_total"]').value = (qty * price).toFixed(2);
+}
+</script>
+{% endblock %}
+
+    </body>
+</html>

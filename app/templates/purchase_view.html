@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Purchase {{ purchase.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding:24px;">
+  <!-- Navbar -->
+  <nav style="background:#667eea; color:white; padding:16px; border-radius:8px; margin-bottom:24px;">
+    <h1>📦 Purchase Invoice</h1>
+    <div>
+      <a href="{{ url_for('purchase.purchases_home') }}" style="color:white; margin-left:16px;">← Back to Purchases</a>
+      <a href="{{ url_for('purchase.edit_purchase', purchase_id=purchase.id) }}" style="color:white; margin-left:16px;">✏️ Edit</a>
+    </div>
+  </nav>
+
+  <!-- Invoice Details -->
+  <div style="background:white; border-radius:8px; padding:24px; box-shadow:0 6px 18px rgba(0,0,0,0.06);">
+    <h2>Invoice #{{ purchase.invoice_number }}</h2>
+    <p><strong>Date:</strong> {{ purchase.invoice_date.strftime('%d/%m/%Y') if purchase.invoice_date else '-' }}</p>
+
+    <h3 style="margin-top:20px;">Your Company</h3>
+    <p><strong>{{ purchase.my_company.company_name }}</strong></p>
+    <p>GST: {{ purchase.my_company.gst_no }}</p>
+    <p>State: {{ purchase.my_company.state }}</p>
+
+    <h3 style="margin-top:20px;">Supplier</h3>
+    <p><strong>{{ purchase.supplier_company.company_name }}</strong></p>
+    <p>GST: {{ purchase.supplier_company.gst_no }}</p>
+    <p>State: {{ purchase.supplier_company.state }}</p>
+
+    <h3 style="margin-top:20px;">Items</h3>
+    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+      <thead>
+        <tr style="background:#f0f2f8;">
+          <th>Description</th>
+          <th>HSN No</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Taxable Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in purchase.items %}
+        <tr>
+          <td>{{ item.description }}</td>
+          <td>{{ item.hsn_no }}</td>
+          <td>{{ item.qty }}</td>
+          <td>₹{{ '%.2f'|format(item.price|float) }}</td>
+          <td>₹{{ '%.2f'|format(item.taxable_amount|float) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center; color:#666;">No items found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:20px;">Payments</h3>
+    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+      <thead>
+        <tr style="background:#f0f2f8;">
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in purchase.payments %}
+        <tr>
+          <td>₹{{ '%.2f'|format(payment.amount|float) }}</td>
+          <td>{{ payment.method }}</td>
+          <td>{{ payment.date.strftime('%d/%m/%Y') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" style="text-align:center; color:#666;">No payments recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:20px;">Totals</h3>
+    <p>Subtotal: ₹{{ '%.2f'|format(purchase.subtotal|float) }}</p>
+    <p>CGST: ₹{{ '%.2f'|format(purchase.cgst|float) }}</p>
+    <p>SGST: ₹{{ '%.2f'|format(purchase.sgst|float) }}</p>
+    <p>IGST: ₹{{ '%.2f'|format(purchase.igst|float) }}</p>
+    <p>Total Tax: ₹{{ '%.2f'|format(purchase.total_tax|float) }}</p>
+    <p style="font-size:18px; margin-top:15px;"><strong>Grand Total: ₹{{ '%.2f'|format(purchase.total_amount|float) }}</strong></p>
+  </div>
+</div>
+{% endblock %}

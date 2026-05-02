@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% block title %}Purchases Dashboard{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f7f8fb;
+  }
+
+  .container {
+    padding: 24px;
+  }
+
+  .navbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 16px 24px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .navbar h1 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 16px;
+    transition: opacity 0.3s;
+  }
+
+  .navbar a:hover {
+    opacity: 0.8;
+  }
+
+  .search-form {
+    margin-bottom: 16px;
+  }
+
+  .search-form input,
+  .search-form select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  .search-form button {
+    margin-left: 8px;
+  }
+
+  .table-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  th {
+    background: #f0f2f8;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .amount {
+    text-align: right;
+    font-weight: 700;
+    color: #28a745;
+  }
+
+  .status.completed {
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .status.pending {
+    background: #fff3cd;
+    color: #856404;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+ 
+
+  .request-btn {
+    background: none;
+    border: 1px solid #f0ad4e;
+    color: #f0ad4e;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .empty-state {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    color: #666;
+  }
+
+  .back-button {
+    background: #667eea;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+
+  .back-button:hover {
+    background: #5a6fe0;
+  }
+
+  .primary-btn {
+    background: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+
+  .primary-btn:hover {
+    background: #218838;
+  }
+td.actions {
+  text-align: center;   /* keeps content centered in the cell */
+}
+
+.action-buttons {
+  display: inline-flex; /* keeps edit + delete side by side */
+  gap: 8px;             /* spacing between buttons */
+}
+
+.edit-btn {
+  background-color: #007bff;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.edit-btn:hover {
+  background-color: #0056b3;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: #fff;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #a71d2a;
+}
+
+</style>
+
+<div class="container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <h1>📦 Purchases Dashboard</h1>
+    <div>
+      <a href="/">Home</a>
+      <a href="{{ url_for('purchase.purchases_home') }}">Purchase Stats</a>
+      <a href="{{ url_for('purchase.create_purchase') }}">➕ New Purchase</a>
+    </div>
+  </nav>
+
+  <!-- Search + Sort -->
+  <form method="get" action="{{ url_for('purchase.list_purchases') }}" class="search-form">
+    <input type="text" name="search" placeholder="Search invoice # or supplier" value="{{ search }}">
+    <button type="submit" class="primary-btn">Search</button>
+    <select name="sort" onchange="this.form.submit()">
+      <option value="desc" {% if sort=='desc' %}selected{% endif %}>Newest First</option>
+      <option value="asc" {% if sort=='asc' %}selected{% endif %}>Oldest First</option>
+    </select>
+  </form>
+
+  <!-- Purchases Table -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Date</th>
+          <th>Supplier</th>
+          <th style="text-align:right;">Amount</th>
+          <th>Status</th>
+          <th style="text-align:center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if purchases %}
+        {% for purchase in purchases %}
+        <tr>
+          <td>
+            <a href="{{ url_for('purchase.view_purchase', purchase_id=purchase.id) }}" class="link">
+              {{ purchase.invoice_number }}
+            </a>
+          </td>
+          <td>{{ purchase.invoice_date.strftime('%d/%m/%Y') if purchase.invoice_date else '-' }}</td>
+          <td>{{ purchase.supplier_company.company_name if purchase.supplier_company else '-' }}</td>
+          <td class="amount">₹{{ '%.2f'|format(purchase.total_amount|float) }}</td>
+          <td>
+            <div><strong>Paid:</strong> ₹{{ '%.2f'|format(purchase.amount_paid|float) }}</div>
+            <div><strong>Pending:</strong> ₹{{ '%.2f'|format(purchase.pending_amount|float) }}</div>
+                <strong>Status:</strong> {{ purchase.payment_status }}
+
+          </td>
+          <td class="actions">
+            {% if current_user.is_authenticated %}
+            {% if current_user.is_admin or owner_id == current_user.id %} <a
+              href="{{ url_for('purchase.edit_purchase', purchase_id=purchase.id) }}">Edit</a>
+            <form method="post" action="{{ url_for('purchase.delete_purchase', purchase_id=purchase.id) }}"
+              onsubmit="return confirm('Delete this purchase permanently?');">
+              <button type="submit" class="delete-btn">Delete</button>
+            </form>
+            {% else %}
+            <form method="post" action="{{ url_for('purchase.request_delete_purchase', purchase_id=purchase.id) }}"
+              onsubmit="return confirm('Send a deletion request to the admins?');">
+              <button type="submit" class="request-btn">Request Deletion</button>
+            </form>
+            {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="6" class="empty-state">
+            No purchases found. <a href="{{ url_for('purchase.create_purchase') }}">Create your first purchase</a>
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <div>Showing page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} purchases)</div>
+      <div>
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('purchase.list_purchases', page=pagination.prev_num, search=search, sort=sort) }}"
+          class="back-button">← Prev</a>
+        {% endif %}
+        {% if pagination.has_next %}
+        <a href="{{ url_for('purchase.list_purchases', page=pagination.next_num, search=search, sort=sort) }}"
+          class="primary-btn">Next →</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

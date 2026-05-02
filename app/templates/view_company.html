@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ company.company_name }} - Nohria Dies and Technology</title>
+    <style>
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+  color: #333;
+}
+
+/* Container */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Back Button */
+.back-button {
+  background: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  display: inline-block;
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.back-button:hover {
+  background: #f0f0f0;
+  color: #764ba2;
+}
+
+/* Card */
+.card {
+  background: #fff;
+  padding: 35px;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Header Section */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 12px;
+}
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #444;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+.btn-edit, .btn-delete {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.btn-edit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+}
+.btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+}
+.btn-delete {
+  background: #fee;
+  color: #c33;
+  border: 1px solid #c33;
+}
+.btn-delete:hover {
+  background: #c33;
+  color: #fff;
+}
+
+/* Info Groups */
+.info-group {
+  margin-bottom: 18px;
+}
+.label {
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 4px;
+}
+.value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #444;
+}
+
+/* Info Row */
+.info-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-bottom: 25px;
+}
+
+/* Created Info */
+.created-info {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  margin-top: 15px;
+}
+
+/* Company Type Badge */
+.value.company-type-own {
+  color: #fff;
+  background: #28a745;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-block;
+}
+.value.company-type-customer {
+  color: #fff;
+  background: #007bff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-block;
+}
+.value.company-type-supplier {
+  color: #fff;
+  background: #ff9800;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+.modal-content h2 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: #333;
+}
+.modal-content p {
+  font-size: 14px;
+  margin-bottom: 25px;
+  color: #666;
+}
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.modal-buttons button, .modal-buttons a {
+  padding: 10px 25px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.confirm-delete {
+  background: #c33;
+  color: #fff;
+}
+.confirm-delete:hover {
+  background: #a22;
+}
+.cancel-delete {
+  background: #f0f0f0;
+  color: #333;
+}
+.cancel-delete:hover {
+  background: #e0e0e0;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-button">← Back to Companies</a>
+        
+        <div class="card">
+            <div class="header-section">
+                <h1>{{ company.company_name }}</h1>
+                <div class="action-buttons">
+                    <a href="/company/{{ company.id }}/edit" class="btn-edit">✏️ Edit</a>
+                    <button class="btn-delete" onclick="openDeleteModal()">🗑️ Delete</button>
+                </div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="label">Location</div>
+                    <div class="value">{{ company.location }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="label">Company Type</div>
+                    <div class="value">{{ company.company_type }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="label">Email</div>
+                    <div class="value">{{ company.email if company.email else 'N/A' }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="label">Mobile No</div>
+                    <div class="value">{{ company.mobile_no if company.mobile_no else 'N/A' }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="label">Website</div>
+                    <div class="value">{{ company.website if company.website else 'N/A' }}</div>
+                </div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="label">State</div>
+                    <div class="value">{{ company.state }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="label">State Code</div>
+                    <div class="value">{{ company.state_code }}</div>
+                </div>
+            </div>
+            
+            <div class="info-group">
+                <div class="label">GST Number</div>
+                <div class="value">{{ company.gst_no }}</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="label">Bank Account Name</div>
+                    <div class="value">{{ company.bank_account_name if company.bank_account_name else 'N/A' }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="label">Bank Name</div>
+                    <div class="value">{{ company.bank_name if company.bank_name else 'N/A' }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="label">Account Number</div>
+                    <div class="value">{{ company.account_no if company.account_no else 'N/A' }}</div>
+                </div>
+                <div class="info-group">
+                    <div class="label">IFSC Code</div>
+                    <div class="value">{{ company.ifsc_code if company.ifsc_code else 'N/A' }}</div>
+                </div>
+            </div>
+            
+            <div class="created-info">
+                Created on: {{ company.created_at.strftime('%d-%m-%Y %H:%M:%S') }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2>Delete Company?</h2>
+            <p>Are you sure you want to delete <strong>{{ company.company_name }}</strong>? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <form method="POST" action="/company/{{ company.id }}/delete" style="display: inline;">
+                    <button type="submit" class="confirm-delete">Yes, Delete</button>
+                </form>
+                <button class="cancel-delete" onclick="closeDeleteModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openDeleteModal() {
+            document.getElementById('deleteModal').classList.add('active');
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target == modal) {
+                modal.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
+
+</html>

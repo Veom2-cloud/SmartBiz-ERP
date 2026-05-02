@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  /* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body background */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Navbar */
+nav {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+nav h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+}
+
+nav div {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+nav a, nav span {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: #764ba2;
+}
+
+/* Top actions */
+.top-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.back-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    background: linear-gradient(135deg, #5a6fe0 0%, #6c3f9c 100%);
+}
+
+/* Dashboard container */
+.dashboard-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 40px 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.dashboard-container h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.dashboard-container p {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* Buttons */
+.btn-lg {
+    padding: 15px 30px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.btn-lg:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+}
+.nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #333;
+    padding: 10px 20px;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* space between logo and h1 */
+}
+
+.company-logo img {
+    max-width: 40px;  /* small logo size */
+    height: auto;
+}
+
+.nav-left h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: #2c3e50;
+}
+
+</style>
+
+<div class="container">
+    <!-- Navbar -->
+   <nav class="nav-bar">
+    <div class="nav-left">
+        <div class="company-logo">
+            <img src="{{ url_for('static', filename='NDT.jpeg') }}" alt="Company Logo">
+        </div>
+        <h1>Nohria Dies and Technologies</h1>
+    </div>
+    <div class="nav-right">
+        {% if current_user.is_authenticated %}
+            <span>👤 {{ current_user.username }}</span>
+            <a href="/auth/logout">Logout</a>
+        {% else %}
+            <a href="/auth/login">Login</a>
+            <a href="/auth/register">Register</a>
+        {% endif %}
+    </div>
+</nav>
+
+ <div class="top-actions">
+            <a href="/" class="back-button">← Back to Home</a>
+        </div>
+    <!-- Dashboard -->
+    <div class="dashboard-container text-center">
+        <h1 class="mb-4">Quotation Dashboard</h1>
+        <p class="lead mb-5">Manage all your quotations easily from here.</p>
+
+        <div class="d-flex justify-content-center gap-4 flex-wrap">
+            <a href="{{ url_for('sales.create_quotation') }}" class="btn btn-primary btn-lg">➕ Create Quotation</a>
+            <a href="{{ url_for('sales.list_quotations') }}" class="btn btn-info btn-lg">📄 View Quotations</a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

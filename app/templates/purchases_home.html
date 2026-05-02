@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Purchases - Nohria Dies and Technology</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        nav {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        nav h1 { color: #333; font-size: 24px; }
+
+        nav div { display: flex; gap: 15px; align-items: center; }
+
+        nav a, nav span {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        nav a:hover { color: #764ba2; }
+
+        .top-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .back-button, .create-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .back-button:hover, .create-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        h2 { margin-bottom: 15px; color: #333; font-size: 22px; }
+        p { color: #666; font-size: 14px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            font-size: 14px;
+        }
+        table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        table tr:hover { background: #f8f9ff; }
+        .nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #333;
+    padding: 10px 20px;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* space between logo and h1 */
+}
+
+.company-logo img {
+    max-width: 40px;  /* small logo size */
+    height: auto;
+}
+
+.nav-left h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    color: #2c3e50;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+       <nav class="nav-bar">
+    <div class="nav-left">
+        <div class="company-logo">
+            <img src="{{ url_for('static', filename='NDT.jpeg') }}" alt="Company Logo">
+        </div>
+        <h1>Nohria Dies and Technologies</h1>
+    </div>
+    <div class="nav-right">
+        {% if current_user.is_authenticated %}
+            <span>👤 {{ current_user.username }}</span>
+            <a href="/auth/logout">Logout</a>
+        {% else %}
+            <a href="/auth/login">Login</a>
+            <a href="/auth/register">Register</a>
+        {% endif %}
+    </div>
+</nav>
+
+
+        <div class="top-actions">
+            <a href="/" class="back-button">← Back to Home</a>
+            <a href="/purchases/create" class="create-button">➕ Create Purchase Invoice</a>
+        </div>
+
+        <div class="card">
+            <h2>Purchases</h2>
+            <p>Track all materials purchased from suppliers. View, manage, and create purchase invoices below.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice No</th>
+                        <th>Supplier</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for purchase in purchases %}
+                    <tr>
+                        <td>{{ purchase.invoice_number }}</td>
+                        <td>{{ purchase.supplier_company.company_name }}</td>
+                        <td>{{ purchase.invoice_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ purchase.total_amount }}</td>
+                        <td>{{ purchase.payment_status }}</td>
+                        <td>
+                            <a href="{{ url_for('purchase.purchase_view', purchase_id=purchase.id) }}">View</a> |
+                            <a href="{{ url_for('purchase.purchase_edit', purchase_id=purchase.id) }}">Edit</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6">No purchases found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<html>
+    <header>
+        <style>
+        /* Table container */
+.report-section {
+    width: 95%;
+    margin: 30px auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    padding: 20px;
+}
+
+/* Headings */
+.report-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0056b3;
+    margin-bottom: 15px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Tables */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.table thead {
+    background: #007bff;
+    color: #fff;
+}
+
+.table th {
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    border-bottom: 2px solid #0056b3;
+}
+
+.table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Row hover effect */
+.table tbody tr:hover {
+    background: #f8f9fa;
+    transition: background 0.3s ease;
+}
+
+/* Alternate row shading */
+.table tbody tr:nth-child(even) {
+    background: #fdfdfd;
+}
+
+/* Totals row styling */
+.table tfoot td {
+    font-weight: 700;
+    background: #e9f2ff;
+    color: #0056b3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table, .table thead, .table tbody, .table th, .table td, .table tr {
+        display: block;
+        width: 100%;
+    }
+    .table tr {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px;
+    }
+    .table td {
+        text-align: left;
+        padding: 8px;
+        border: none;
+    }
+    .table th {
+        display: none;
+    }
+}
+</style>
+    </header>
+    <body>
+        <table class="table">
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>Year</th>
+            <th>Total IGST</th>
+            <th>Total CGST</th>
+            <th>Total SGST</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in results %}
+        <tr>
+            <td>{{ row.month }}</td>
+            <td>{{ row.year }}</td>
+            <td>{{ row.total_igst }}</td>
+            <td>{{ row.total_cgst }}</td>
+            <td>{{ row.total_sgst }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+    </body>
+</html>

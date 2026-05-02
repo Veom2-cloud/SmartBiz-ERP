@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Edit Company - Nohria Dies and Technology</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button,
+        a {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .required {
+            color: #c33;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1>Edit Company</h1>
+
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="company_name">Company Name <span class="required">*</span></label>
+                    <input type="text" id="company_name" name="company_name" required placeholder="Enter company name"
+                        value="{{ company.company_name }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location <span class="required">*</span></label>
+                    <input type="text" id="location" name="location" required placeholder="e.g., Delhi, Mumbai"
+                        value="{{ company.location }}">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="state_code">State Code <span class="required">*</span></label>
+                        <input type="text" id="state_code" name="state_code" required placeholder="e.g., DL, MH"
+                            maxlength="10" value="{{ company.state_code }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="state">State <span class="required">*</span></label>
+                        <input type="text" id="state" name="state" required placeholder="e.g., Delhi, Maharashtra"
+                            value="{{ company.state }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="gst_no">GST Number <span class="required">*</span></label>
+                    <input type="text" id="gst_no" name="gst_no" required placeholder="e.g., 07AABCT1234G1Z0"
+                        maxlength="50" value="{{ company.gst_no }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email (Optional)</label>
+                    <input type="text" id="email" name="email" placeholder="company@example.com"
+                        value="{{ company.email or '' }}" pattern="[a-zA-Z0-9._%+-]*@?[a-zA-Z0-9.-]*\.?[a-zA-Z]{0,}">
+                </div>
+                <div class="form-group">
+                    <label for="mobile_no">Mobile No</label>
+                    <input type="text" name="mobile_no" class="form-control" value="{{ company.mobile_no }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="website">Website</label>
+                    <input type="text" name="website" class="form-control" value="{{ company.website }}">
+                </div>
+
+
+                <div class="form-group">
+                    <label for="company_type">Company Type</label>
+                    <select class="form-control" id="company_type" name="company_type">
+                        <option value="customer" {% if company.company_type=='customer' %}selected{% endif %}>Customer
+                        </option>
+                        <option value="own" {% if company.company_type=='own' %}selected{% endif %}>Own</option>
+                        <option value="supplier" {% if company.company_type=='supplier' %}selected{% endif %}>Supplier
+                        </option>
+                    </select>
+                </div>
+                <h3>Bank Details</h3>
+                <label>Bank Account Name</label>
+                <input type="text" name="bank_account_name" value="{{ company.bank_account_name }}">
+                <label>Bank Name</label>
+                <input type="text" name="bank_name" value="{{ company.bank_name }}">
+
+                <label>Account No</label>
+                <input type="text" name="account_no" value="{{ company.account_no }}">
+
+                <label>IFSC Code</label>
+                <input type="text" name="ifsc_code" value="{{ company.ifsc_code }}">
+
+                <div class="btn-group">
+                    <button type="submit">Save Changes</button>
+                    <a href="/company/{{ company.id }}" class="btn-cancel">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

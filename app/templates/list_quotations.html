@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    /* Container */
+    .container {
+        max-width: 1000px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Heading */
+    .container h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    /* Table styling */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .table thead {
+        background: #667eea;
+        color: #fff;
+    }
+
+    .table th,
+    .table td {
+        padding: 14px 18px;
+        text-align: left;
+        font-size: 15px;
+    }
+
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: background 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background: #f8f9ff;
+    }
+
+ /* Back button container */
+.back-button {
+    text-align: center;
+    margin-top: 20px;
+
+}
+
+/* Back button styling */
+.btn-outline-primary {
+    border: 2px solid #007bff;
+    color: #007bff;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.3s ease-in-out;
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* Hover effect */
+.btn-outline-primary:hover {
+    background: #007bff;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+</style>
+   <div class="back-button">
+    <a href="{{ url_for('sales.quotation_home') }}" class="btn btn-outline-primary">⬅ Back</a>
+</div>
+
+<div class="container mt-5">
+    <h2>All Quotations</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Quotation No.</th>
+                <th>Customer</th>
+                <th>Supply Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in quotations %}
+            <tr>
+                <td>{{ q.quotation_number }}</td>
+                <td>{{ q.customer.company_name }}</td>
+                <td>{{ q.supply_date }}</td>
+                <td>{{ q.status }}</td>
+                <td>
+                    <a href="{{ url_for('sales.view_quotation', quotation_id=q.id) }}"
+                        class="btn btn-sm btn-info">View</a>
+                    <a href="{{ url_for('sales.edit_quotation', quotation_id=q.id) }}"
+                        class="btn btn-sm btn-warning">Edit</a>
+                        <form action="{{ url_for('sales.delete_quotation', quotation_id=q.id) }}" method="POST" style="display:inline;">
+        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this quotation?');">Delete</button>
+    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

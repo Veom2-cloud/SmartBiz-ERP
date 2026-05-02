@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% block title %}Edit Purchase {{ purchase.invoice_number }}{% endblock %}
+
+{% block content %}
+<style>
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  }
+  h2 { margin-bottom: 20px; color: #333; font-size: 24px; font-weight: 600; }
+  label { display:block; margin-top:12px; margin-bottom:6px; font-weight:500; color:#444; }
+  input, select { width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-size:14px; }
+  table { width:100%; border-collapse:collapse; margin-top:20px; }
+  th, td { border:1px solid #eee; padding:8px; text-align:left; }
+  th { background:#f0f2f8; font-weight:600; }
+  .primary-btn { background:#28a745; color:white; padding:10px 20px; border-radius:6px; font-weight:600; border:none; cursor:pointer; }
+  .back-button { background:#667eea; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:600; }
+  .form-actions { margin-top:20px; display:flex; gap:12px; }
+  .add-btn { background:#007bff; color:white; padding:6px 12px; border-radius:6px; border:none; cursor:pointer; margin-top:10px; }
+</style>
+
+<div class="container">
+  <h2>Edit Purchase Invoice</h2>
+
+  <form method="post" id="purchase-form">
+    <p>Buyer Company</p>
+  <select name="my_company_id" id="myCompanySelect" required>
+  {% for c in companies %}
+    <option value="{{ c.id }}" 
+            data-state="{{ c.state_code }}" 
+            data-code="{{ c.company_code }}"
+            {% if purchase.my_company_id == c.id %}selected{% endif %}>
+      {{ c.company_name }}
+    </option>
+  {% endfor %}
+</select>
+<p>Supplier Comapny</p>
+<select name="supplier_company_id" id="supplierCompanySelect" required>
+  {% for c in companies %}
+    <option value="{{ c.id }}" 
+            data-state="{{ c.state_code }}" 
+            data-code="{{ c.company_code }}"
+            {% if purchase.supplier_company_id == c.id %}selected{% endif %}>
+      {{ c.company_name }}
+    </option>
+  {% endfor %}
+</select>
+<input type="hidden" id="myStateCode" name="my_state_code" value="{{ purchase.my_state_code or '' }}">
+<input type="hidden" id="supplierStateCode" name="supplier_state_code" value="{{ purchase.supplier_state_code or '' }}">
+
+    <label>Invoice Number</label>
+    <input type="text" name="invoice_number" value="{{ purchase.invoice_number }}" required>
+
+    <label>Invoice Date</label>
+    <input type="date" name="invoice_date" value="{{ purchase.invoice_date.isoformat() if purchase.invoice_date else '' }}">
+<div class="form-group">
+  <label for="po_number">PO Number</label>
+  <input type="text" id="po_number" name="po_number"
+         value="{{ purchase.po_number or '' }}" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="po_date">PO Date</label>
+  <input type="date" id="po_date" name="po_date"
+         value="{{ purchase.po_date.isoformat() if purchase.po_date else '' }}" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="transporter">Transporter</label>
+  <input type="text" id="transporter" name="transporter"
+         value="{{ purchase.transporter or '' }}" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="booking">Booking</label>
+  <input type="text" id="booking" name="booking"
+         value="{{ purchase.booking or '' }}" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="msme_registration_no">MSME Registration No</label>
+  <input type="text" id="msme_registration_no" name="msme_registration_no"
+         value="{{ purchase.msme_registration_no or '' }}" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="ack_no">Acknowledgement No</label>
+  <input type="text" id="ack_no" name="ack_no"
+         value="{{ purchase.ack_no or '' }}" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="irn_no">IRN No</label>
+  <input type="text" id="irn_no" name="irn_no"
+         value="{{ purchase.irn_no or '' }}" class="form-control">
+</div>
+    <!-- Items -->
+    <h3>Items</h3>
+    <table id="items-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>HSN No</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Taxable Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in purchase.items %}
+        <tr>
+          <td><input type="text" name="items[{{ loop.index0 }}][description]" value="{{ item.description }}"></td>
+          <td><input type="text" name="items[{{ loop.index0 }}][hsn_code]" value="{{ item.hsn_no }}"></td>
+          <td><input type="number" step="1" name="items[{{ loop.index0 }}][qty]" value="{{ item.qty }}"></td>
+          <td><input type="number" step="0.01" name="items[{{ loop.index0 }}][price]" value="{{ item.price }}"></td>
+          <td><input type="number" step="0.01" name="items[{{ loop.index0 }}][taxable_amount]" value="{{ item.taxable_amount }}" readonly></td>
+
+    <td><button type="button" onclick="removeItem(this)">×</button></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center; color:#666;">No items found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="button" class="add-btn" onclick="addItem()">➕ Add Item</button>
+
+    <!-- Totals -->
+    <label>Subtotal</label>
+    <input type="number" step="0.01" name="subtotal" value="{{ purchase.subtotal|float|round(2) }}">
+
+    <label>CGST</label>
+    <input type="number" step="0.01" name="cgst_amount" value="{{ purchase.cgst|float|round(2) }}">
+
+    <label>SGST</label>
+    <input type="number" step="0.01" name="sgst_amount" value="{{ purchase.sgst|float|round(2) }}">
+
+    <label>IGST</label>
+    <input type="number" step="0.01" name="igst_amount" value="{{ purchase.igst|float|round(2) }}">
+
+    <label>Total Tax</label>
+    <input type="number" step="0.01" name="total_tax" value="{{ purchase.total_tax|float|round(2) }}">
+    <div class="form-group">
+  <label for="freight_charges">Freight Charges</label>
+  <input type="number" step="0.01" id="freight_charges" name="freight_charges"
+         value="{{ purchase.freight_charges|float|round(2) }}" class="form-control">
+</div>
+
+    <label>Total Amount</label>
+    <input type="number" step="0.01" name="total_amount" value="{{ purchase.total_amount|float|round(2) }}">
+
+    <!-- Payments -->
+    <h3>Payments</h3>
+    <ul>
+      {% for p in purchase.payments %}
+        <li>
+          ₹{{ '%.2f'|format(p.amount|float) }} via {{ p.method }} on {{ p.date.strftime('%d/%m/%Y') }}
+        </li>
+      {% else %}
+        <li style="color:#666;">No payments recorded.</li>
+      {% endfor %}
+    </ul>
+
+    <div>
+      <strong>Total Paid:</strong> ₹{{ '%.2f'|format(purchase.amount_paid|float) }}<br>
+      <strong>Pending:</strong> ₹{{ '%.2f'|format(purchase.pending_amount|float) }}<br>
+      <strong>Status:</strong> {{ purchase.payment_status }}
+    </div>
+
+<h4>Add Payment</h4>
+<div>
+  <input type="number" step="0.01" name="payment_amount"
+         placeholder="Amount"
+         max="{{ purchase.pending_amount }}">
+  <input type="text" name="payment_method" placeholder="Method (Cash, Cheque, UPI)">
+  <input type="date" name="payment_date">
+</div>
+    <div class="form-actions">
+      <button type="submit" class="primary-btn">💾 Save Changes</button>
+      <a href="{{ url_for('purchase.view_purchase', purchase_id=purchase.id) }}" class="back-button">✖ Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function recalcTotals() {
+  let subtotal = 0;
+  const freight = parseFloat(document.getElementById('freight_charges')?.value) || 0;
+
+  // Calculate taxable amounts per row
+  document.querySelectorAll('#items-table tbody tr').forEach(row => {
+    const qty = parseFloat(row.querySelector('[name*="[qty]"]').value) || 0;
+    const price = parseFloat(row.querySelector('[name*="[price]"]').value) || 0;
+
+    const taxable = qty * price;
+    row.querySelector('[name*="[taxable_amount]"]').value = taxable.toFixed(2);
+    subtotal += taxable;
+  });
+
+  // Add freight to subtotal
+  subtotal += freight;
+  document.querySelector('[name="subtotal"]').value = subtotal.toFixed(2);
+
+  // Get state codes
+  const myStateCode = document.getElementById('myStateCode')?.value;
+  const supplierStateCode = document.getElementById('supplierStateCode')?.value;
+
+  let cgst = 0, sgst = 0, igst = 0;
+
+  if (myStateCode && supplierStateCode) {
+    if (myStateCode === supplierStateCode) {
+      // Intra-state: CGST + SGST
+      cgst = subtotal * 0.09;
+      sgst = subtotal * 0.09;
+    } else {
+      // Inter-state: IGST
+      igst = subtotal * 0.18;
+    }
+  }
+
+  // Update tax fields
+  document.querySelector('[name="cgst_amount"]').value = cgst.toFixed(2);
+  document.querySelector('[name="sgst_amount"]').value = sgst.toFixed(2);
+  document.querySelector('[name="igst_amount"]').value = igst.toFixed(2);
+
+  // Total tax
+  const totalTax = cgst + sgst + igst;
+  document.querySelector('[name="total_tax"]').value = totalTax.toFixed(2);
+
+  // Grand total
+  document.querySelector('[name="total_amount"]').value = (subtotal + totalTax).toFixed(2);
+}
+
+// Attach listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const freightInput = document.getElementById('freight_charges');
+  if (freightInput) freightInput.addEventListener('input', recalcTotals);
+
+  const myStateInput = document.getElementById('myStateCode');
+  if (myStateInput) myStateInput.addEventListener('change', recalcTotals);
+
+  const supplierStateInput = document.getElementById('supplierStateCode');
+  if (supplierStateInput) supplierStateInput.addEventListener('change', recalcTotals);
+
+  // Attach listeners to existing item inputs
+  document.querySelectorAll('#items-table input').forEach(input => {
+    input.addEventListener('input', recalcTotals);
+  });
+
+  // Initial calculation
+  recalcTotals();
+});
+
+// Add new item row dynamically
+function addItem() {
+  const tbody = document.querySelector('#items-table tbody');
+  const index = tbody.querySelectorAll('tr').length;
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="text" name="items[${index}][description]"></td>
+    <td><input type="text" name="items[${index}][hsn_code]"></td>
+    <td><input type="number" step="1" name="items[${index}][qty]" value="0"></td>
+    <td><input type="number" step="0.01" name="items[${index}][price]" value="0"></td>
+    <td><input type="number" step="0.01" name="items[${index}][taxable_amount]" value="0" readonly></td>
+    <td><button type="button" onclick="removeItem(this)">×</button></td>
+  `;
+  tbody.appendChild(row);
+
+  // Attach listeners for new row
+  row.querySelectorAll('input').forEach(input => input.addEventListener('input', recalcTotals));
+
+  recalcTotals();
+}
+
+function fillCompanyDetails() {
+  const mySelect = document.getElementById('myCompanySelect');
+  const supplierSelect = document.getElementById('supplierCompanySelect');
+
+  const myState = mySelect.options[mySelect.selectedIndex]?.dataset.state;
+  const supplierState = supplierSelect.options[supplierSelect.selectedIndex]?.dataset.state;
+
+  document.getElementById('myStateCode').value = myState || '';
+  document.getElementById('supplierStateCode').value = supplierState || '';
+
+  recalcTotals();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('myCompanySelect').addEventListener('change', fillCompanyDetails);
+  document.getElementById('supplierCompanySelect').addEventListener('change', fillCompanyDetails);
+
+  // Run once on load
+  fillCompanyDetails();
+});
+
+// Remove item row
+function removeItem(button) {
+  const row = button.closest('tr');
+  row.remove();
+  recalcTotals();
+}
+</script>
+
+
+{% endblock %}

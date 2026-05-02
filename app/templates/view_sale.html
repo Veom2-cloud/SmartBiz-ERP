@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% block title %}Tax Invoice{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f4f6f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  }
+
+  .header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .invoice-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e3a8a;
+  }
+
+  .invoice-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .company-section {
+    width: 48%;
+    background: #f9fafc;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e0e6ed;
+  }
+
+  .invoice-meta-grid {
+    display: flex;
+    justify-content: space-between;
+    margin: 16px 0;
+  }
+
+  table.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+  }
+
+  table.items-table th, table.items-table td {
+    border: 1px solid #e0e6ed;
+    padding: 10px;
+    text-align: left;
+  }
+
+  table.items-table th {
+    background: #667eea;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .totals-section {
+    margin-top: 20px;
+    border-top: 2px solid #e0e6ed;
+    padding-top: 12px;
+  }
+
+  .totals-row, .grand-total {
+    display: flex;
+    justify-content: space-between;
+    margin: 6px 0;
+  }
+
+  .grand-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a8a;
+  }
+
+  .amount-in-words {
+    margin-top: 12px;
+    font-style: italic;
+    color: #374151;
+  }
+
+  .bank-details, .terms-section {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid #e0e6ed;
+    border-radius: 8px;
+    background: #fafbfc;
+  }
+
+  .signature-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+  }
+
+  .signature-line {
+    margin-top: 40px;
+    border-top: 1px solid #333;
+    width: 200px;
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+  }
+
+  .delete-btn {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  .invoice-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px 24px;
+  margin: 20px 0;
+  padding: 16px;
+  background: #f9fafc;
+  border: 1px solid #e0e4eb;
+  border-radius: 8px;
+}
+
+.invoice-meta-grid p {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.invoice-meta-grid strong {
+  color: #667eea;
+  font-weight: 600;
+}
+
+</style>
+
+<div class="container">
+  <div class="header-bar">
+    <div>
+      <div class="invoice-title">TAX INVOICE</div>
+      <div class="invoice-subtitle">Goods & Services Tax Compliant</div>
+    </div>
+  </div>
+
+  <div class="header-row">
+    <div class="company-section">
+      <h3>Supplier Details</h3>
+      <p><strong>Consignee M/s: {{ sale.my_company.company_name if sale.my_company else '-' }}</strong></p>
+        <p>Location: {{ sale.my_company.location if sale.my_company else '-' }}</p>   <!-- Company Location -->
+      <p>GSTIN: {{ sale.my_company.gst_no if sale.my_company else '-' }}</p>
+      <p>State: {{ sale.my_company.state if sale.my_company else '-' }} ({{ sale.my_company.state_code if sale.my_company else '-' }})</p>
+        <p>Email: {{ sale.my_company.email if sale.my_company else '-' }}</p>   <!-- Supplier Email -->
+    </div>
+
+    <div class="company-section">
+      <h3>Bill To</h3>
+      <p><strong>Consignee M/s:  {{ sale.customer_company.company_name if sale.customer_company else '-' }}</strong></p>
+              <p>Location: {{ sale.customer_company.location if sale.my_company else '-' }}</p>   <!-- Company Location -->
+
+      <p>GSTIN: {{ sale.customer_company.gst_no if sale.customer_company else '-' }}</p>
+      <p>State: {{ sale.customer_company.state if sale.customer_company else '-' }} ({{ sale.customer_company.state_code if sale.customer_company else '-' }})</p>
+    </div>
+  </div>
+
+  <div class="invoice-meta-grid">
+    <p><strong>Invoice Date:</strong> {{ sale.invoice_date.strftime('%d/%m/%Y') if sale.invoice_date else '-' }}</p>
+    <p><strong>Invoice No:</strong> {{ sale.invoice_number }}</p>
+    <p><strong>Place of Supply:</strong> {{ sale.customer_company.state if sale.customer_company else '-' }}</p>
+
+    <p><strong>PO Number:</strong> {{ sale.po_number if sale.po_number else 'N/A' }}</p>
+    <p><strong>PO Date:</strong> {{ sale.po_date.strftime('%d-%m-%Y') if sale.po_date else 'N/A' }}</p>
+    <p><strong>Challan No:</strong> {{ sale.challan_no if sale.challan_no else 'N/A' }}</p>
+    <p><strong>Challan Date:</strong> {{ sale.challan_date.strftime('%d-%m-%Y') if sale.challan_date else 'N/A' }}</p>
+    <p><strong>Date & Time of Supply:</strong> {{ sale.supply_datetime.strftime('%d-%m-%Y %H:%M') if sale.supply_datetime else 'N/A' }}</p>
+    <p><strong>E‑Way Bill:</strong> {{ sale.eway_bill if sale.eway_bill else 'N/A' }}</p>
+  </div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Description of Goods</th>
+        <th>HSN No</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th style="text-align:right;">Taxable Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in sale.items %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ item.description }}</td>
+        <td>{{ item.hsn_no or '-' }}</td>
+        <td>{{ item.qty }}</td>
+        <td>₹{{ '%.2f'|format(item.price|float) }}</td>
+        <td style="text-align:right;">₹{{ '%.2f'|format(item.taxable_amount|float) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals-section">
+    <div class="totals-row">
+      <span>Subtotal:</span>
+      <span>₹{{ '%.2f'|format(sale.subtotal|float) }}</span>
+    </div>
+
+    <div class="totals-row">
+      <span>CGST 9%:</span>
+      <span>₹{{ '%.2f'|format(sale.cgst|float) }}</span>
+    </div>
+
+    <div class="totals-row">
+      <span>SGST 9%:</span>
+      <span>₹{{ '%.2f'|format(sale.sgst|float) }}</span>
+    </div>
+
+    <div class="totals-row">
+      <span>IGST 18%:</span>
+      <span>₹{{ '%.2f'|format(sale.igst|float) }}</span>
+    </div>
+
+    <div class="totals-row">
+      <span>Total Tax:</span>
+      <span>₹{{ '%.2f'|format(sale.total_tax|float) }}</span>
+    </div>
+
+
+    <div class="totals-row">
+      <span>Freight charges:</span>
+      <span>₹{{ '%.2f'|format(sale.freight_charges|float) }}</span>
+    </div>
+ <div class="totals-row">
+      <span>Total Amount:</span>
+      <span>₹{{ '%.2f'|format(sale.total_amount|float) }}</span>
+    </div>
+
+  <div class="amount-in-words">
+  Amount in Words: {{ sale.total_amount_in_words() }}
+</div>
+
+  </div>
+
+  <div class="bank-details">
+    <h3>Bank Details</h3>
+    <p><strong>Bank Name:</strong> {{ sale.my_company.bank_name or '-' }}</p>
+    <p><strong>Account No:</strong> {{ sale.my_company.account_no or '-' }}</p>
+    <p><strong>IFSC Code:</strong> {{ sale.my_company.ifsc_code or '-' }}</p>
+  </div>
+
+  <div class="terms-section">
+    <h3>Terms & Conditions</h3>
+    <ul>
+      <li>Please pay by Payee's A/c Cheque.</li>
+      <li>Risk & responsibility ceases after delivery of goods to the carrier.</li>
+      <li>All disputes subject to {{ sale.my_company.city or 'Faridabad' }} jurisdiction only.</li>
+      <li>Interest @ 18% will be charged if the bill is not paid on presentation.</li>
+    </ul>
+  </div>
+
+   <div class="signature-section">
+    <div class="receiver-signature">
+      <p>Receiver's Signature</p>
+      <div class="signature-line"></div>
+    </div>
+    <div class="auth-signature">
+      <p>For {{ sale.my_company.company_name }}</p>
+      <div class="signature-line">Auth. Signature</div>
+    </div>
+  </div>
+
+ 
+</div>
+{% endblock %}
+

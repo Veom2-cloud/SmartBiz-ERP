@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Purchase Invoice - Nohria Dies</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        h1 { color: #333; margin-bottom: 20px; }
+        .form-section { margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-radius: 8px; }
+        .form-section h3 { color: #667eea; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .form-row.full { grid-template-columns: 1fr; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: Arial; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .readonly { background: #f0f0f0; cursor: not-allowed; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button, a { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; }
+        button { background: #667eea; color: white; }
+        button:hover { background: #764ba2; }
+        a.btn-cancel { background: #f0f0f0; color: #333; display: inline-block; }
+        a.btn-cancel:hover { background: #e0e0e0; }
+        .back { display: inline-block; margin-bottom: 15px; color: #667eea; text-decoration: none; font-weight: bold; }
+        .error { background: #fee; color: #c33; padding: 10px; border-radius: 6px; margin-bottom: 15px; }
+        /* Items Table Styles */
+.items-container {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.items-table-header {
+    background: #667eea;
+    color: white;
+    padding: 10px 15px;
+    font-weight: bold;
+    font-size: 13px;
+    display: grid;
+    grid-template-columns: 50px 2fr 1fr 80px 100px 120px 50px;
+    gap: 10px;
+    align-items: center;
+}
+
+.item-row {
+    display: grid;
+    grid-template-columns: 50px 2fr 1fr 80px 100px 120px 50px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 15px;
+    border-top: 1px solid #ddd;
+    background: #fff;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.item-row:hover {
+    background: #f8f9ff;
+    border-color: #667eea;
+}
+
+.item-row:last-child {
+    border-bottom: 1px solid #ddd;
+}
+
+.sno {
+    font-weight: bold;
+    color: #667eea;
+    text-align: center;
+}
+
+.taxable-amount {
+    font-weight: bold;
+    color: #28a745;
+    text-align: right;
+}
+
+.remove-item {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.remove-item:hover {
+    background: #c82333;
+}
+
+.add-item-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    margin-bottom: 10px;
+    transition: background 0.2s;
+}
+
+.add-item-btn:hover {
+    background: #218838;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 40px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/purchases" class="back">← Back to Purchases</a>
+        
+        <h1>Create Purchase Invoice</h1>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <!-- Your Company -->
+            <div class="form-section">
+                <h3>Your Company Details</h3>
+                <div class="form-row full">
+                    <div>
+                        <label>Select Your Company *</label>
+                        <select name="my_company_id" id="myCompany" required onchange="fillMyCompanyDetails()">
+                            <option value="">-- Select Your Company --</option>
+                            {% for company in companies %}
+                                <option value="{{ company.id }}" data-state-code="{{ company.state_code }}" data-name="{{ company.company_name }}" data-gst="{{ company.gst_no }}" data-state="{{ company.state }}">
+                                    {{ company.company_name }} ({{ company.gst_no }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>Company Name</label>
+                        <input type="text" id="myCompanyName" readonly class="readonly">
+                    </div>
+                    <div>
+                        <label>GST No</label>
+                        <input type="text" id="myCompanyGst" readonly class="readonly">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>State</label>
+                        <input type="text" id="myCompanyState" readonly class="readonly">
+                    </div>
+                    <div>
+                        <label>State Code</label>
+                        <input type="text" id="myStateCode" readonly class="readonly">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supplier Company -->
+            <div class="form-section">
+                <h3>Bill From (Supplier Company)</h3>
+                <div class="form-row full">
+                    <div>
+                        <label>Select Supplier Company *</label>
+                        <select name="supplier_company_id" id="supplierCompany" required onchange="fillSupplierDetails()">
+                            <option value="">-- Select Supplier --</option>
+                            {% for company in companies %}
+                                <option value="{{ company.id }}" data-state-code="{{ company.state_code }}" data-name="{{ company.company_name }}" data-gst="{{ company.gst_no }}" data-state="{{ company.state }}">
+                                    {{ company.company_name }} ({{ company.gst_no }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>Company Name</label>
+                        <input type="text" id="supplierName" readonly class="readonly">
+                    </div>
+                    <div>
+                        <label>GST No</label>
+                        <input type="text" id="supplierGst" readonly class="readonly">
+                    </div>
+                    
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>State</label>
+                        <input type="text" id="supplierState" readonly class="readonly">
+                    </div>
+                    <div>
+                        <label>State Code</label>
+                        <input type="text" id="supplierStateCode" readonly class="readonly">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Details -->
+            <div class="form-section">
+                <h3>Invoice Details</h3>
+                <div class="form-row">
+                    <div>
+                        <label>Invoice Number *</label>
+                        <input type="text" name="invoice_number" required placeholder="INV-2024-001">
+                    </div>
+                    <div>
+                        <label>Invoice Date *</label>
+                        <input type="date" name="invoice_date" required>
+                    </div>
+                    <div class="form-group">
+  <label for="po_number">PO Number</label>
+  <input type="text" id="po_number" name="po_number" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="po_date">PO Date</label>
+  <input type="date" id="po_date" name="po_date" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="transporter">Transporter</label>
+  <input type="text" id="transporter" name="transporter" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="booking">Booking</label>
+  <input type="text" id="booking" name="booking" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="msme_registration_no">MSME Registration No</label>
+  <input type="text" id="msme_registration_no" name="msme_registration_no" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="ack_no">Acknowledgement No</label>
+  <input type="text" id="ack_no" name="ack_no" class="form-control">
+</div>
+
+<div class="form-group">
+  <label for="irn_no">IRN No</label>
+  <input type="text" id="irn_no" name="irn_no" class="form-control">
+</div>
+
+
+                </div>
+            </div>
+
+         <!-- Items Table -->
+<div class="form-section">
+    <h3>Items</h3>
+    <button type="button" class="add-item-btn" onclick="addItemRow()">➕ Add Item Row</button>
+    <div id="itemsContainer" class="items-container">
+        <!-- Table Header -->
+        <div class="items-table-header">
+            <span>S.No</span>
+            <span>Description of Goods</span>
+            <span>HSN No</span>
+            <span>Qty</span>
+            <span>Price</span>
+            <span>Taxable Amount</span>
+            <span></span>
+        </div>
+        <!-- Dynamic rows go here -->
+    </div>
+</div>
+
+
+
+            <!-- Subtotal & Tax -->
+            <div class="form-section">
+                <div class="form-row">
+                    <div>
+                        <label>Subtotal</label>
+                        <input type="number" id="subtotal" name="subtotal" readonly class="readonly" step="0.01">
+                    </div>
+                </div>
+            </div>
+<div class="form-group">
+  <label for="freight_charges">Freight Charges</label>
+  <input type="number" step="0.01" id="freight_charges" name="freight_charges" class="form-control">
+</div>
+            <!-- Tax Calculation -->
+            <div class="form-section">
+                <h3>Tax Calculation (Auto)</h3>
+                <div class="form-row">
+                    <div>
+                        <label>CGST (9%)</label>
+                        <input type="number" id="cgst" name="cgst_amount" readonly class="readonly" step="0.01">
+                    </div>
+                    <div>
+                        <label>SGST (9%)</label>
+                        <input type="number" id="sgst" name="sgst_amount" readonly class="readonly" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>IGST (18%)</label>
+                        <input type="number" id="igst" name="igst_amount" readonly class="readonly" step="0.01">
+                    </div>
+                    <div>
+                        <label>Total Tax</label>
+                        <input type="number" id="totalTax" name="total_tax" readonly class="readonly" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grand Total -->
+            <div class="form-section" style="background: #667eea; color: white;">
+                <label style="color: white;">GRAND TOTAL</label>
+                <input type="number" id="grandTotal" name="total_amount" readonly style="background: white; color: #667eea; font-weight: bold;" step="0.01">
+            </div>
+
+            <!-- Form Actions -->
+            <div class="btn-group">
+                <button type="submit">💾 Save Purchase</button>
+                <a href="/purchases" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function fillMyCompanyDetails() {
+            const select = document.getElementById('myCompany');
+            const option = select.options[select.selectedIndex];
+            
+            if (option.value) {
+                document.getElementById('myCompanyName').value = option.getAttribute('data-name');
+                document.getElementById('myCompanyGst').value = option.getAttribute('data-gst');
+                document.getElementById('myCompanyState').value = option.getAttribute('data-state');
+                document.getElementById('myStateCode').value = option.getAttribute('data-state-code');
+                calculateTax();
+            }
+        }
+
+        function fillSupplierDetails() {
+            const select = document.getElementById('supplierCompany');
+            const option = select.options[select.selectedIndex];
+            
+            if (option.value) {
+                document.getElementById('supplierName').value = option.getAttribute('data-name');
+                document.getElementById('supplierGst').value = option.getAttribute('data-gst');
+                document.getElementById('supplierState').value = option.getAttribute('data-state');
+                document.getElementById('supplierStateCode').value = option.getAttribute('data-state-code');
+                calculateTax();
+            }
+        }
+
+let itemCounter = 0;
+
+function addItemRow() {
+    itemCounter++;
+    const container = document.getElementById('itemsContainer');
+    const itemRow = document.createElement('div');
+    itemRow.className = 'item-row';
+    itemRow.id = `itemRow${itemCounter}`;
+    itemRow.innerHTML = `
+        <div class="sno">${itemCounter}</div>
+        <textarea name="items[${itemCounter}][description]" placeholder="Enter description of goods" required style="resize: vertical; min-height: 40px;" onchange="calculateTotals()"></textarea>
+        <input type="text" name="items[${itemCounter}][hsn_no]" placeholder="HSN No" onchange="calculateTotals()">
+        <input type="number" name="items[${itemCounter}][qty]" min="1" placeholder="1" required onchange="calculateTotals()">
+        <input type="number" name="items[${itemCounter}][price]" min="0" step="0.01" placeholder="0.00" required onchange="calculateTotals()">
+        <div class="taxable-amount" id="taxable${itemCounter}">0.00</div>
+        <button type="button" class="remove-item" onclick="removeItemRow(${itemCounter})" title="Remove Row">×</button>
+    `;
+    container.appendChild(itemRow);
+    calculateTotals();
+}
+
+function removeItemRow(rowId) {
+    const row = document.getElementById(`itemRow${rowId}`);
+    if (row && document.querySelectorAll('.item-row').length > 1) {
+        row.remove();
+        updateSerialNumbers();
+        calculateTotals();
+    }
+}
+
+function updateSerialNumbers() {
+    const rows = document.querySelectorAll('.item-row');
+    rows.forEach((row, index) => {
+        row.querySelector('.sno').textContent = index + 1;
+    });
+}
+
+function calculateTotals() {
+    let subtotal = 0;
+    const freight = parseFloat(document.getElementById('freight_charges')?.value) || 0;
+
+    // Loop through item rows
+    document.querySelectorAll('.item-row').forEach(row => {
+        const qty = parseFloat(row.querySelector('input[name$="[qty]"]').value) || 0;
+        const price = parseFloat(row.querySelector('input[name$="[price]"]').value) || 0;
+        const taxable = qty * price;
+
+        const rowId = row.id.replace('itemRow', '');
+        row.querySelector(`#taxable${rowId}`).textContent = taxable.toFixed(2);
+
+        subtotal += taxable;
+    });
+
+    // Add freight to subtotal
+    subtotal += freight;
+    document.getElementById('subtotal').value = subtotal.toFixed(2);
+
+    // State codes
+    const myStateCode = document.getElementById('myStateCode')?.value;
+    const supplierStateCode = document.getElementById('supplierStateCode')?.value;
+
+    let cgst = 0, sgst = 0, igst = 0;
+
+    if (supplierStateCode && myStateCode) {
+        if (myStateCode === supplierStateCode) {
+            // Intra-state: CGST + SGST
+            cgst = subtotal * 0.09;
+            sgst = subtotal * 0.09;
+        } else {
+            // Inter-state: IGST
+            igst = subtotal * 0.18;
+        }
+    }
+
+    const totalTax = cgst + sgst + igst;
+    const grandTotal = subtotal + totalTax;
+
+    // Update fields
+    document.getElementById('cgst').value = cgst.toFixed(2);
+    document.getElementById('sgst').value = sgst.toFixed(2);
+    document.getElementById('igst').value = igst.toFixed(2);
+    document.getElementById('totalTax').value = totalTax.toFixed(2);
+    document.getElementById('grandTotal').value = grandTotal.toFixed(2);
+}
+
+// Attach listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const freightInput = document.getElementById('freight_charges');
+    if (freightInput) freightInput.addEventListener('input', calculateTotals);
+
+    const myStateInput = document.getElementById('myStateCode');
+    if (myStateInput) myStateInput.addEventListener('change', calculateTotals);
+
+    const supplierStateInput = document.getElementById('supplierStateCode');
+    if (supplierStateInput) supplierStateInput.addEventListener('change', calculateTotals);
+
+    // Initial calculation
+    calculateTotals();
+});
+function calculateTax() {
+    calculateTotals();
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('input[name="invoice_date"]').value = new Date().toISOString().split('T')[0];
+    addItemRow(); // start with one row
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}All Sales{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #f7f8fb;
+    margin: 0;
+    padding: 0;
+  }
+
+  .container {
+    padding: 24px;
+  }
+
+  nav {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 14px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  nav h1 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 16px;
+    font-weight: 500;
+    transition: opacity 0.3s;
+  }
+
+  nav a:hover {
+    opacity: 0.8;
+  }
+
+  form input, form select, form button {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+
+  form button {
+    background: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+
+  form button:hover {
+    background: #218838;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  th, td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+  }
+
+  th {
+    background: #f0f2f8;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  td a {
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  td a:hover {
+    text-decoration: underline;
+  }
+
+  .status {
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  .status.completed {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .status.pending {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .actions a, .actions button {
+    margin: 0 4px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .actions button {
+    background: none;
+    border: none;
+    color: #d9534f;
+    font-weight: 600;
+  }
+
+  .pagination {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #666;
+  }
+
+  .pagination a {
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .pagination a.prev {
+    background: #667eea;
+    color: white;
+  }
+
+  .pagination a.next {
+    background: #28a745;
+    color: white;
+  }
+
+  .pagination a:hover {
+    opacity: 0.9;
+  }
+</style>
+
+<div class="container">
+  <!-- Navbar -->
+  <nav>
+    <h1>📊 Sales Dashboard</h1>
+    <div>
+      <a href="/">Home</a>
+      <a href="{{ url_for('sales.sales_home') }}">Sales Stats</a>
+      <a href="{{ url_for('sales.create_sale') }}">➕ New Invoice</a>
+    </div>
+  </nav>
+
+  <!-- Search + Sort -->
+  <form method="get" action="{{ url_for('sales.list_sales') }}" style="margin-bottom:16px;">
+    <input type="text" name="search" placeholder="Search invoice # or customer" value="{{ search }}">
+    <button type="submit">Search</button>
+    <select name="sort" onchange="this.form.submit()">
+      <option value="desc" {% if sort == 'desc' %}selected{% endif %}>Newest First</option>
+      <option value="asc" {% if sort == 'asc' %}selected{% endif %}>Oldest First</option>
+    </select>
+  </form>
+
+  <!-- Sales Table -->
+  <table>
+    <thead>
+      <tr>
+        <th>Invoice #</th>
+        <th>Date</th>
+        <th>Customer</th>
+        <th style="text-align:right;">Amount</th>
+        <th>Status</th>
+        <th style="text-align:center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if sales %}
+        {% for sale in sales %}
+        <tr>
+          <td><a href="{{ url_for('sales.view_sale', sale_id=sale.id) }}" class="link">{{ sale.invoice_number }}</a></td>
+          <td>{{ sale.invoice_date.strftime('%d/%m/%Y') if sale.invoice_date else '-' }}</td>
+          <td>{{ sale.customer_company.company_name if sale.customer_company else '-' }}</td>
+          <td style="text-align:right; font-weight:600; color:#28a745;">
+            ₹{{ '%.2f'|format(sale.total_amount|float) }}
+          </td>
+          <td>
+            {% if sale.payment_status == 'Completed' %}
+              <span class="status completed">Completed</span>
+            {% else %}
+              <span class="status pending">Pending</span>
+            {% endif %}
+          </td>
+          <td class="actions" style="text-align:center;">
+            <a href="{{ url_for('sales.edit_sale', sale_id=sale.id) }}">Edit</a>
+            <form method="post" action="{{ url_for('sales.delete_sale', sale_id=sale.id) }}" style="display:inline;" onsubmit="return confirm('Delete this invoice permanently?');">
+              <button type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="6" style="text-align:center; padding:20px; color:#666;">
+            No invoices found. <a href="{{ url_for('sales.create_sale') }}">Create your first invoice</a>
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <span>Page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} invoices)</span>
+    <div>
+      {% if pagination.has_prev %}
+        <a href="{{ url_for('sales.list_sales', page=pagination.prev_num, search=search) }}" class="prev">← Prev</a>
+      {% endif %}
+      {% if pagination.has_next %}
+        <a href="{{ url_for('sales.list_sales', page=pagination.next_num, search=search) }}" class="next">Next →</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
