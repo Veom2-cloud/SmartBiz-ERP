@@ -3,21 +3,15 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/Veom2-cloud/SmartBiz-ERP'
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
-                bat 'pip install -r requirements.txt'
+                bat 'python -m pip install -r requirements.txt'
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat 'pytest -v --cov=.'
+                bat 'python -m pytest -v --cov=.'
             }
         }
 
