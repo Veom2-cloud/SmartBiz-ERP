@@ -350,7 +350,7 @@ function addItemRow() {
         <div class="sno">${itemCounter}</div>
         <input type="text" name="items[${itemCounter}][description]" placeholder="Description" onchange="calculateTotals()">
         <input type="text" name="items[${itemCounter}][hsn_no]" placeholder="HSN No" onchange="calculateTotals()">
-        <input type="number" name="items[${itemCounter}][qty]" min="1" value="0" onchange="calculateTotals()">
+        <input type="number" name="items[${itemCounter}][qty]" min="0"  step="0.01" value="0" onchange="calculateTotals()">
         <input type="number" name="items[${itemCounter}][price]" min="0" step="0.01" value="0" onchange="calculateTotals()">
         <div class="taxable-amount" id="taxable${itemCounter}">0.00</div>
         <button type="button" onclick="removeItemRow(${itemCounter})">×</button>

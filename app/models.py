@@ -43,7 +43,7 @@ class Company(db.Model):
     mobile_no = db.Column(db.String(20), nullable=True)        # ✅ new field
     website = db.Column(db.String(120), nullable=True)         # ✅ new field
     bank_account_name = db.Column(db.String(150), nullable=True)  # ✅ new field
-
+    msme_no = db.Column(db.String(50), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
 

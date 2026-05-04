@@ -43,7 +43,7 @@ def create_company():
         bank_name = request.form.get('bank_name')
         account_no = request.form.get('account_no')
         ifsc_code = request.form.get('ifsc_code')
-
+        msme_no=request.form.get("msme_no")
         # Check for duplicate GST
         if Company.query.filter_by(gst_no=gst_no).first():
             return render_template('create_company.html', error="GST number already exists")
@@ -61,7 +61,8 @@ def create_company():
             created_by=current_user.id,
             bank_name=bank_name,
             account_no=account_no,
-            ifsc_code=ifsc_code
+            ifsc_code=ifsc_code,
+            msme_no=msme_no
         )
 
         db.session.add(company)
@@ -99,7 +100,7 @@ def edit_company(company_id):
         company.account_no = request.form.get('account_no')
         company.ifsc_code = request.form.get('ifsc_code')
         company.company_type = request.form.get('company_type')
-
+        company.msme_no = request.form.get("msme_no") 
         db.session.commit()
         return redirect(url_for('company.view_company', company_id=company.id))
     
@@ -231,12 +232,12 @@ def create_sale():
             invoice_date_raw = request.form.get('invoice_date')
             invoice_date = date.fromisoformat(invoice_date_raw) if invoice_date_raw else date.today()
 
-            subtotal = float(request.form.get('subtotal', 0) or 0)
-            cgst = float(request.form.get('cgst') or 0)
-            sgst = float(request.form.get('sgst') or 0)
-            igst = float(request.form.get('igst') or 0)
-            total_tax = float(request.form.get('total_tax', 0) or 0)
-            total_amount = float(request.form.get('total_amount', 0) or 0)
+            subtotal = Decimal(request.form.get('subtotal', 0) or 0)
+            cgst = Decimal(request.form.get('cgst') or 0)
+            sgst = Decimal(request.form.get('sgst') or 0)
+            igst = Decimal(request.form.get('igst') or 0)
+            total_tax = Decimal(request.form.get('total_tax', 0) or 0)
+            total_amount = Decimal(request.form.get('total_amount', 0) or 0)
 
             # Convert to words
             rupees = int(total_amount)
@@ -291,8 +292,8 @@ def create_sale():
                 desc = request.form.get(f'items[{i}][description]')
                 if not desc:
                     break
-                qty = int(request.form.get(f'items[{i}][qty]', 0) or 0)
-                price = float(request.form.get(f'items[{i}][price]', 0) or 0)
+                qty = Decimal(request.form.get(f'items[{i}][qty]', 0) or 0)
+                price = Decimal(request.form.get(f'items[{i}][price]', 0) or 0)
                 taxable = qty * price
                 item = SaleItem(
                     description=desc,
@@ -514,7 +515,7 @@ def edit_sale(sale_id):
                 desc = request.form.get(f'items[{i}][description]')
                 if not desc:
                     break
-                qty = int(request.form.get(f'items[{i}][qty]', 0) or 0)
+                qty = Decimal(request.form.get(f'items[{i}][qty]', 0) or 0)
                 price = Decimal(request.form.get(f'items[{i}][price]', 0) or 0)
                 taxable = qty * price
                 item = SaleItem(
@@ -687,12 +688,12 @@ def create_purchase():
             my_company_id=int(request.form['my_company_id']),
             supplier_company_id=int(request.form['supplier_company_id']),
             invoice_date=invoice_date,
-            subtotal=float(request.form.get('subtotal', 0) or 0),
-            cgst=float(request.form.get('cgst_amount', 0) or 0),
-            sgst=float(request.form.get('sgst_amount', 0) or 0),
-            igst=float(request.form.get('igst_amount', 0) or 0),
-            total_tax=float(request.form.get('total_tax', 0) or 0),
-            total_amount=float(request.form.get('total_amount', 0) or 0),
+            subtotal=Decimal(request.form.get('subtotal', 0) or 0),
+            cgst=Decimal(request.form.get('cgst_amount', 0) or 0),
+            sgst=Decimal(request.form.get('sgst_amount', 0) or 0),
+            igst=Decimal(request.form.get('igst_amount', 0) or 0),
+            total_tax=Decimal(request.form.get('total_tax', 0) or 0),
+            total_amount=Decimal(request.form.get('total_amount', 0) or 0),
             po_number = (request.form.get('po_number') or '').strip(),
          
             po_date = date.fromisoformat(po_date_raw) if po_date_raw else None,
@@ -702,7 +703,7 @@ def create_purchase():
             msme_registration_no = (request.form.get('msme_registration_no') or '').strip(),
             ack_no = (request.form.get('ack_no') or '').strip(),
             irn_no = (request.form.get('irn_no') or '').strip(),
-            freight_charges = float(request.form.get('freight_charges') or 0),
+            freight_charges = Decimal(request.form.get('freight_charges') or 0),
         )
         db.session.add(purchase)
         db.session.flush()  # ensures purchase.id is available
@@ -723,9 +724,9 @@ def create_purchase():
                 purchase_id=purchase.id,
                 description=data.get("description"),
                 hsn_no=data.get("hsn_no"),
-                qty=int(data.get("qty") or 0),
-                price=float(data.get("price") or 0),
-                taxable_amount=float(data.get("taxable_amount") or 0)
+                qty=Decimal(data.get("qty") or 0),
+                price=Decimal(data.get("price") or 0),
+                taxable_amount=Decimal(data.get("taxable_amount") or 0)
             )
             db.session.add(item)
             update_inventory_from_purchase(item)
@@ -830,7 +831,7 @@ def edit_purchase(purchase_id):
                 purchase_id=purchase.id,
                 description=data.get("description"),
                 hsn_no=data.get("hsn_code"),
-                qty=int(data.get("qty") or 0),
+                qty=Decimal(data.get("qty") or 0),
                 price=Decimal(data.get("price") or "0"),
                 taxable_amount=Decimal(data.get("taxable_amount") or "0")
             )
@@ -1026,11 +1027,16 @@ def edit_quotation(quotation_id):
 
     if request.method == "POST":
         import datetime
+
+        # ✅ Update header fields
         quotation.supply_date = datetime.date.fromisoformat(request.form.get("supply_date")) \
             if request.form.get("supply_date") else quotation.supply_date
         quotation.terms_and_conditions = request.form.get("terms_and_conditions", quotation.terms_and_conditions)
         quotation.customer_company_id = request.form.get("customer_company_id", quotation.customer_company_id)
         quotation.own_company_id = request.form.get("own_company_id", quotation.own_company_id)
+
+        # ✅ Update status (Draft / Accepted / Rejected)
+        quotation.status = request.form.get("status", quotation.status)
 
         # ✅ Update items
         descriptions = request.form.getlist("item_description")
@@ -1038,6 +1044,7 @@ def edit_quotation(quotation_id):
         prices = request.form.getlist("item_price")
         hsns = request.form.getlist("item_hsn")
 
+        # Clear existing items
         quotation.items.clear()
 
         for i in range(len(descriptions)):

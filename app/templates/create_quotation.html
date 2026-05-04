@@ -189,10 +189,12 @@ h2, h4 {
                 <thead>
                     <tr>
                         <th>Description</th>
+                        <th>HSN No.</th>
                         <th>Qty</th>
+                        
                         <th>Unit Price</th>
                         <th>Total Price</th>
-                        <th>HSN No.</th>
+                        
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -214,10 +216,11 @@ function addRow() {
     const row = table.insertRow();
     row.innerHTML = `
         <td><input type="text" name="item_description" class="form-control"></td>
+        <td><input type="text" name="item_hsn" class="form-control"></td>
         <td><input type="number" step="0.01" name="item_qty" class="form-control" oninput="updateRowTotal(this)"></td>
         <td><input type="number" step="0.01" name="item_price" class="form-control" oninput="updateRowTotal(this)"></td>
         <td><input type="text" name="item_total" class="form-control" readonly></td>
-        <td><input type="text" name="item_hsn" class="form-control"></td>
+        
         <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✖</button></td>
     `;
 }

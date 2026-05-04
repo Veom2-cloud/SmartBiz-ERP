@@ -228,6 +228,14 @@ select.form-control {
             </table>
             <button type="button" class="btn btn-success mb-3" onclick="addRow()">➕ Add Item</button>
 
+                <div class="form-group">
+  <label for="status">Status</label>
+  <select class="form-control" id="status" name="status">
+    <option value="Draft" {% if quotation.status == 'Draft' %}selected{% endif %}>Draft</option>
+    <option value="Accepted" {% if quotation.status == 'Accepted' %}selected{% endif %}>Accepted</option>
+    <option value="Rejected" {% if quotation.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+  </select>
+</div> 
             <!-- Action buttons -->
             <div class="form-actions">
                 <button type="submit" class="btn btn-warning">💾 Save Changes</button>
