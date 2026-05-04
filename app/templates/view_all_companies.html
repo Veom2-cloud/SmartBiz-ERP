@@ -241,6 +241,28 @@
             margin-bottom: 15px;
             font-size: 20px;
         }
+     .create-company-section {
+    display: flex;
+    justify-content: flex-end; /* aligns button to the right */
+    margin: 15px 0;
+}
+
+.create-button {
+    padding: 8px 14px;
+    background-color: #6a0dad; /* purple */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.create-button:hover {
+    background-color: #4b0082; /* darker purple on hover */
+}
+
+
     </style>
 </head>
 <body>
@@ -258,7 +280,9 @@
             </div>
         </nav>
         
-      
+       <div class="create-company-section" style="margin: 15px 0;">
+        <a href="/create-company" class="create-button">➕ Create Company</a>
+    </div>
         
         <!-- Search Section -->
         <div class="search-section">

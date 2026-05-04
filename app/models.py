@@ -96,8 +96,8 @@ class SaleInvoice(db.Model):
             new_seq = 1
 
         return f"{fy_string}-{new_seq:04d}"
-    my_company_id = db.Column(db.Integer, db.ForeignKey('companies.id', ondelete='CASCADE'), nullable=False)
-    customer_company_id = db.Column(db.Integer, db.ForeignKey('companies.id', ondelete='CASCADE'), nullable=False)
+    my_company_id = db.Column(db.Integer, db.ForeignKey('companies.id', ondelete='RESTRICT'), nullable=False)
+    customer_company_id = db.Column(db.Integer, db.ForeignKey('companies.id', ondelete='RESTRICT'), nullable=False)
     invoice_date = db.Column(db.Date, default=datetime.date.today)
     subtotal = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     cgst = db.Column(db.Numeric(8, 2), default=0)
