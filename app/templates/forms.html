@@ -1,0 +1,15 @@
+<!-- templates/upload_purchase.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Purchase Invoice</title>
+</head>
+<body>
+    <h2>Upload Purchase Invoice (PDF)</h2>
+  <form action="{{ url_for('purchase.upload_purchase_invoice') }}" method="post" enctype="multipart/form-data">
+    <label for="file">Select PDF:</label>
+    <input type="file" name="file" accept="application/pdf" required>
+    <button type="submit">Upload</button>
+</form>
+</body>
+</html>

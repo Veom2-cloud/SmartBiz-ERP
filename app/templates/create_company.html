@@ -154,16 +154,15 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="state_code">State Code <span class="required">*</span></label>
-                        <input type="text" id="state_code" name="state_code" required placeholder="e.g., 06, 08"
-                            maxlength="10">
-                    </div>
+                  <div class="form-group">
+  <label for="state_code">State Code</label>
+  <input type="text" id="state_code" name="state_code" readonly>
+</div>
 
-                    <div class="form-group">
-                        <label for="state">State <span class="required">*</span></label>
-                        <input type="text" id="state" name="state" required placeholder="e.g., Delhi, Maharashtra">
-                    </div>
+                <div class="form-group">
+  <label for="state">State <span class="required">*</span></label>
+  <input type="text" id="state" name="state" required placeholder="e.g., Delhi, Maharashtra">
+</div>
                 </div>
 
                 <div class="form-group">
@@ -210,5 +209,51 @@
         </div>
     </div>
 </body>
+<script>
+  const stateCodes = {
+    "jammu & kashmir": "01",
+    "himachal pradesh": "02",
+    "punjab": "03",
+    "chandigarh": "04",
+    "uttarakhand": "05",
+    "haryana": "06",
+    "delhi": "07",
+    "rajasthan": "08",
+    "uttar pradesh": "09",
+    "bihar": "10",
+    "sikkim": "11",
+    "arunachal pradesh": "12",
+    "nagaland": "13",
+    "manipur": "14",
+    "mizoram": "15",
+    "tripura": "16",
+    "meghalaya": "17",
+    "assam": "18",
+    "west bengal": "19",
+    "jharkhand": "20",
+    "odisha": "21",
+    "chhattisgarh": "22",
+    "madhya pradesh": "23",
+    "gujarat": "24",
+    "daman & diu": "25",
+    "dadra & nagar haveli": "26",
+    "maharashtra": "27",
+    "andhra pradesh": "28",
+    "karnataka": "29",
+    "goa": "30",
+    "lakshadweep": "31",
+    "kerala": "32",
+    "tamil nadu": "33",
+    "puducherry": "34",
+    "andaman & nicobar islands": "35",
+    "telangana": "36",
+    "andhra pradesh (new)": "37"
+  };
 
+  document.getElementById("state").addEventListener("input", function() {
+    const stateName = this.value.trim().toLowerCase(); // normalize input
+    const code = stateCodes[stateName];
+    document.getElementById("state_code").value = code || "";
+  });
+</script>
 </html>

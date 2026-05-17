@@ -278,6 +278,8 @@ td.actions {
     <div class="pagination">
       <div>Showing page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} purchases)</div>
       <div>
+        <a href="{{ url_for('purchase.view_purchase', purchase_id=purchase.id) }}" 
+       class="edit-btn">📄 View</a>
         {% if pagination.has_prev %}
         <a href="{{ url_for('purchase.list_purchases', page=pagination.prev_num, search=search, sort=sort) }}"
           class="back-button">← Prev</a>

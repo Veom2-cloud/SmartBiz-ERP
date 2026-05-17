@@ -304,9 +304,10 @@ h1 {
             <h2>Delete Company?</h2>
             <p>Are you sure you want to delete <strong>{{ company.company_name }}</strong>? This action cannot be undone.</p>
             <div class="modal-buttons">
-                <form method="POST" action="/company/{{ company.id }}/delete" style="display: inline;">
-                    <button type="submit" class="confirm-delete">Yes, Delete</button>
-                </form>
+              <form action="{{ url_for('company.delete_company', id=company.id) }}" method="post">
+    <button type="submit" onclick="return confirm('Delete this company?');">Delete</button>
+</form>
+
                 <button class="cancel-delete" onclick="closeDeleteModal()">Cancel</button>
             </div>
         </div>

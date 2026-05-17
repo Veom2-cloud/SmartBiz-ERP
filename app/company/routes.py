@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, jsonif
 from flask_login import current_user, login_required
 from datetime import date
 from .. import db
-from ..models import Company, SaleInvoice , SaleItem,Invoice,InventoryItem,Quotation, QuotationItem,generate_quotation_number
+from ..models import Company, SaleInvoice , SaleItem,Invoice,InventoryItem,Quotation, QuotationItem,generate_quotation_number,save_purchase_invoice
 from ..models import Company, SaleInvoice, PurchaseInvoice,DeletionRequest,SalesPayment,PurchaseItem, PurchasePayment,update_inventory_from_purchase
 from sqlalchemy import func,or_
 from decimal import Decimal
@@ -12,7 +12,14 @@ from datetime import datetime
 from num2words import num2words
 import pandas as pd
 import os
-import io
+from flask import request, redirect, url_for
+from PIL import Image
+from flask import Flask, request, jsonify
+from werkzeug.utils import secure_filename
+from config import Config
+from .invoice_processor import process_invoice_pdf
+from .db import save_invoice, mark_invoice_failed
+
 backup_bp = Blueprint("backup", __name__, url_prefix="/backup")
 company_bp = Blueprint('company', __name__, url_prefix='/')
 sales_bp = Blueprint('sales', __name__, url_prefix='/')
@@ -108,19 +115,31 @@ def edit_company(company_id):
 
 
 
-@company_bp.route('/company/<int:company_id>/delete', methods=['POST'])
+@company_bp.route("/delete-company/<int:id>", methods=["POST"])
 @login_required
-def delete_company(company_id):
-    """Delete a company"""
-    company = Company.query.get_or_404(company_id)
-    
-    if company.created_by != current_user.id and not current_user.is_admin:
-        return render_template('error.html', error="You don't have permission to delete this company"), 403
-    
+def delete_company(id):
+    company = Company.query.get_or_404(id)
+
+    # Check if company has sales or purchases
+    has_sales = SaleInvoice.query.filter(
+        (SaleInvoice.my_company_id == company.id) |
+        (SaleInvoice.customer_company_id == company.id)
+    ).first()
+
+    has_purchases = PurchaseInvoice.query.filter(
+        (PurchaseInvoice.my_company_id == company.id) |
+        (PurchaseInvoice.supplier_company_id == company.id)
+    ).first()
+
+    if has_sales or has_purchases:
+        flash("Cannot delete company with existing sales or purchases.", "error")
+        return redirect(url_for("company.view_all_companies"))
+
+    # If no sales/purchases, allow deletion
     db.session.delete(company)
     db.session.commit()
-    
-    return redirect(url_for('company.view_all_companies'))
+    flash("Company deleted successfully!", "success")
+    return redirect(url_for("company.view_all_companies"))
 
 
 @company_bp.route('/view-all-companies')
@@ -638,6 +657,58 @@ def add_payment(sale_id):
         db.session.commit()
     return redirect(url_for('sales.view_sale', sale_id=sale.id))
 
+from sqlalchemy import func
+
+@sales_bp.route('/reports', methods=['GET'])
+@login_required
+def sales_reports():
+    # Monthly GST totals
+    monthly_gst = (
+        db.session.query(
+            func.date_format(SaleInvoice.invoice_date, "%Y-%m").label("month"),
+            func.sum(SaleInvoice.cgst + SaleInvoice.sgst + SaleInvoice.igst).label("gst_total")
+        )
+        .group_by("month")
+        .order_by("month")
+        .all()
+    )
+
+    # Quarterly profit analysis (sales - purchases)
+    quarterly_profit = (
+        db.session.query(
+            func.concat(
+                func.year(SaleInvoice.invoice_date),
+                "-Q",
+                func.quarter(SaleInvoice.invoice_date)
+            ).label("quarter"),
+            (func.sum(SaleInvoice.total_amount) - func.sum(PurchaseInvoice.total_amount)).label("profit")
+        )
+        .group_by("quarter")
+        .order_by("quarter")
+        .all()
+    )
+
+    # Customer-wise sales summary
+    customer_sales = (
+        db.session.query(
+            Company.company_name,
+            func.sum(SaleInvoice.total_amount).label("total_sales")
+        )
+        .join(Company, SaleInvoice.customer_company_id == Company.id)
+        .group_by(Company.company_name)
+        .order_by(func.sum(SaleInvoice.total_amount).desc())
+        .all()
+    )
+
+    return render_template(
+        "sales_reports.html",
+        monthly_gst=monthly_gst,
+        quarterly_profit=quarterly_profit,
+        customer_sales=customer_sales
+    )
+
+
+
 # ============ PURCHASE ROUTES ============
 
 @purchase_bp.route('/purchases')
@@ -860,7 +931,7 @@ def edit_purchase(purchase_id):
 
         db.session.commit()
         flash("Purchase updated successfully!", "success")
-        return redirect(url_for('purchase.view_purchase', purchase_id=purchase.id))
+        return redirect(url_for('purchase.purchases_home', purchase_id=purchase.id))
 
     companies = Company.query.all()
     return render_template('purchase_edit.html', purchase=purchase, companies=companies)
@@ -887,62 +958,47 @@ def request_delete_purchase(purchase_id):
     return redirect(url_for('purchase.purchases_home'))
 
 
-from sqlalchemy import func
-
-@sales_bp.route('/reports', methods=['GET'])
-@login_required
-def sales_reports():
-    # Monthly GST totals
-    monthly_gst = (
-        db.session.query(
-            func.date_format(SaleInvoice.invoice_date, "%Y-%m").label("month"),
-            func.sum(SaleInvoice.cgst + SaleInvoice.sgst + SaleInvoice.igst).label("gst_total")
-        )
-        .group_by("month")
-        .order_by("month")
-        .all()
-    )
-
-    # Quarterly profit analysis (sales - purchases)
-    quarterly_profit = (
-        db.session.query(
-            func.concat(
-                func.year(SaleInvoice.invoice_date),
-                "-Q",
-                func.quarter(SaleInvoice.invoice_date)
-            ).label("quarter"),
-            (func.sum(SaleInvoice.total_amount) - func.sum(PurchaseInvoice.total_amount)).label("profit")
-        )
-        .group_by("quarter")
-        .order_by("quarter")
-        .all()
-    )
-
-    # Customer-wise sales summary
-    customer_sales = (
-        db.session.query(
-            Company.company_name,
-            func.sum(SaleInvoice.total_amount).label("total_sales")
-        )
-        .join(Company, SaleInvoice.customer_company_id == Company.id)
-        .group_by(Company.company_name)
-        .order_by(func.sum(SaleInvoice.total_amount).desc())
-        .all()
-    )
-
-    return render_template(
-        "sales_reports.html",
-        monthly_gst=monthly_gst,
-        quarterly_profit=quarterly_profit,
-        customer_sales=customer_sales
-    )
-
 
 @purchase_bp.route('/inventory')
 @login_required
 def inventory():
     items = InventoryItem.query.order_by(InventoryItem.product_name.asc()).all()
     return render_template("inventory.html", items=items)
+
+
+ALLOWED_EXTENSIONS = {"pdf"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@purchase_bp.route("/upload-form", methods=["GET"])
+def purchase_upload_form():
+    return render_template("upload_purchase.html")
+
+@purchase_bp.route("/upload", methods=["POST"])
+def upload_purchase_invoice():
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+
+    file = request.files["file"]
+    if not file or not allowed_file(file.filename):
+        return jsonify({"error": "Only PDF files are allowed"}), 400
+
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+    file.save(filepath)
+
+    try:
+        data = process_invoice_pdf(filepath, Config.OLLAMA_BASE_URL, Config.OLLAMA_MODEL)
+        invoice_id = save_purchase_invoice(data, filename)
+        return jsonify({
+            "success": True,
+            "invoice_id": invoice_id,
+            "filename": filename,
+            "extracted": data
+        }), 201
+    except Exception as e:
+        return jsonify({"error": str(e), "filename": filename}), 500
 
 ######################################################################################################################
 @sales_bp.route('/quotation/create', methods=['GET', 'POST'])

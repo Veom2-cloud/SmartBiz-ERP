@@ -11,6 +11,9 @@ from num2words import num2words
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, ForeignKey, Text,Date
 import datetime
 
+
+
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -35,15 +38,15 @@ class Company(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     company_name = db.Column(db.String(200), nullable=False)
-    location = db.Column(db.String(200), nullable=False)
-    state_code = db.Column(db.String(10), nullable=False)
-    state = db.Column(db.String(100), nullable=False)
-    gst_no = db.Column(db.String(50), unique=True, nullable=False)
+    location = db.Column(db.String(200), nullable=True)
+    state_code = db.Column(db.String(10), nullable=True)
+    state = db.Column(db.String(100), nullable=True)
+    gst_no = db.Column(db.String(50), unique=True, nullable=True)
     email = db.Column(db.String(120), nullable=True)
     mobile_no = db.Column(db.String(20), nullable=True)        # ✅ new field
     website = db.Column(db.String(120), nullable=True)         # ✅ new field
     bank_account_name = db.Column(db.String(150), nullable=True)  # ✅ new field
-    msme_no = db.Column(db.String(50), unique=True, nullable=False)
+    msme_no = db.Column(db.String(50), unique=True, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
 
@@ -201,6 +204,7 @@ class PurchaseInvoice(db.Model):
     ack_no = db.Column(db.String(50))
     irn_no = db.Column(db.String(50))
     freight_charges = db.Column(db.Numeric(12, 2), default=0)
+    eway_bill = db.Column(db.String(50))
     # Relationships
     items = db.relationship('PurchaseItem', back_populates='purchase', cascade="all, delete-orphan")
     payments = db.relationship('PurchasePayment', back_populates='purchase', cascade="all, delete-orphan")
@@ -221,6 +225,16 @@ class PurchaseInvoice(db.Model):
             return "Partially Paid"
         else:
             return "Pending"
+    def total_amount_in_words(self):
+        if not self.total_tax:
+            return "Zero Rupees Only"
+        rupees = int(self.total_tax)
+        paise = int(round((self.total_tax - rupees) * 100))
+        words_rupees = num2words(rupees, lang='en_IN').title()
+        if paise > 0:
+            words_paise = num2words(paise, lang='en_IN').title()
+            return f"{words_rupees} Rupees And {words_paise} Paise Only"
+        return f"{words_rupees} Rupees Only"
 
 
 
@@ -374,3 +388,65 @@ def generate_quotation_number():
 
     # ✅ Always pad to 3 digits
     return f"{fy_string}-{new_number:03d}"
+
+def get_or_create_company(name, gst_no, company_type):
+    if not name or name == "UNKNOWN":
+        # fallback to a placeholder name
+        name = f"AutoCompany-{company_type}"
+
+    company = None
+    if gst_no and gst_no != "UNKNOWN":
+        company = Company.query.filter_by(gst_no=gst_no).first()
+    if not company:
+        company = Company(company_name=name, gst_no=gst_no, company_type=company_type)
+        db.session.add(company)
+        db.session.commit()
+    return company.id
+
+
+def save_purchase_invoice(data: dict, filename: str) -> int:
+    invoice_no = data.get("invoice_no")
+    if not invoice_no or invoice_no == "UNKNOWN":
+        import uuid
+        invoice_no = f"AUTO-{uuid.uuid4().hex[:8]}"
+
+    my_company_id = data.get("my_company_id") or get_or_create_company(
+        data.get("my_company_name"), data.get("my_company_gst"), "my_company"
+    )
+    supplier_company_id = data.get("supplier_company_id") or get_or_create_company(
+        data.get("supplier_name"), data.get("supplier_gst"), "supplier"
+    )
+
+    invoice = PurchaseInvoice(
+        invoice_number=invoice_no,
+        my_company_id=my_company_id,
+        supplier_company_id=supplier_company_id,
+        invoice_date=data.get("date"),
+        subtotal=data.get("subtotal", 0),
+        cgst=data.get("cgst", 0),
+        sgst=data.get("sgst", 0),
+        igst=data.get("igst", 0),
+        total_tax=data.get("total_tax", 0),
+        total_amount=data.get("grand_total", 0),
+        po_number=data.get("po_number"),
+        po_date=data.get("po_date"),
+        transporter=data.get("transporter"),
+        booking=data.get("booking"),
+        msme_registration_no=data.get("msme_registration_no"),
+        ack_no=data.get("ack_no"),
+        irn_no=data.get("irn_no"),
+        freight_charges=data.get("freight_charges", 0),
+    )
+
+    for item in data.get("items", []):
+        invoice.items.append(PurchaseItem(
+            description=item.get("description"),
+            hsn_no=item.get("hsn_no"),
+            qty=item.get("qty"),
+            price=item.get("unit_price"),
+            taxable_amount=item.get("total_amount")
+        ))
+
+    db.session.add(invoice)
+    db.session.commit()
+    return invoice.id

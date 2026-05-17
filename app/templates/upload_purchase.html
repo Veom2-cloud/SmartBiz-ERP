@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload Sales CSV</title>
+    <title>Upload Purchase Invoice</title>
 </head>
 <body>
-    <h2>Upload Sales CSV</h2>
-    <form action="/purchase/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".csv" required>
+    <h2>Upload Purchase Invoice (PDF)</h2>
+
+    <!-- ✅ Correct endpoint name: purchase.upload_purchase_invoice -->
+    <form action="{{ url_for('purchase.upload_purchase_invoice') }}" 
+          method="post" 
+          enctype="multipart/form-data">
+
+        <label for="file">Select PDF:</label>
+        <input type="file" name="file" accept="application/pdf" required>
+
         <button type="submit">Upload</button>
     </form>
 </body>

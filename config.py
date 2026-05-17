@@ -20,5 +20,7 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
-    
+    OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "invoice-extractor")
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
     ##mariadb+mariadbconnector://nohria_user:telly123@localhost/Nohria_dies_and_Technology
