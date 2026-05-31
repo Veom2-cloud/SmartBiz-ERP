@@ -330,138 +330,354 @@ textarea {
     </div>
 
     <script>
-        function fillMyCompanyDetails() {
-            const select = document.getElementById('myCompany');
-            const option = select.options[select.selectedIndex];
-            
-            if (option.value) {
-                document.getElementById('myCompanyName').value = option.getAttribute('data-name');
-                document.getElementById('myCompanyGst').value = option.getAttribute('data-gst');
-                document.getElementById('myCompanyState').value = option.getAttribute('data-state');
-                document.getElementById('myStateCode').value = option.getAttribute('data-state-code');
-                calculateTax();
-            }
-        }
-
-        function fillSupplierDetails() {
-            const select = document.getElementById('supplierCompany');
-            const option = select.options[select.selectedIndex];
-            
-            if (option.value) {
-                document.getElementById('supplierName').value = option.getAttribute('data-name');
-                document.getElementById('supplierGst').value = option.getAttribute('data-gst');
-                document.getElementById('supplierState').value = option.getAttribute('data-state');
-                document.getElementById('supplierStateCode').value = option.getAttribute('data-state-code');
-                calculateTax();
-            }
-        }
-
 let itemCounter = 0;
 
-function addItemRow() {
-    itemCounter++;
-    const container = document.getElementById('itemsContainer');
-    const itemRow = document.createElement('div');
-    itemRow.className = 'item-row';
-    itemRow.id = `itemRow${itemCounter}`;
-    itemRow.innerHTML = `
-        <div class="sno">${itemCounter}</div>
-        <textarea name="items[${itemCounter}][description]" placeholder="Enter description of goods" required style="resize: vertical; min-height: 40px;" onchange="calculateTotals()"></textarea>
-        <input type="text" name="items[${itemCounter}][hsn_no]" placeholder="HSN No" onchange="calculateTotals()">
-        <input type="number" name="items[${itemCounter}][qty]" min="1" placeholder="1" required onchange="calculateTotals()">
-        <input type="number" name="items[${itemCounter}][price]" min="0" step="0.01" placeholder="0.00" required onchange="calculateTotals()">
-        <div class="taxable-amount" id="taxable${itemCounter}">0.00</div>
-        <button type="button" class="remove-item" onclick="removeItemRow(${itemCounter})" title="Remove Row">×</button>
-    `;
-    container.appendChild(itemRow);
+/* =========================
+   COMPANY DETAILS
+========================= */
+
+function fillMyCompanyDetails() {
+
+    const select =
+        document.getElementById('myCompany');
+
+    const option =
+        select.options[select.selectedIndex];
+
+    if (option.value) {
+
+        document.getElementById('myCompanyName').value =
+            option.getAttribute('data-name');
+
+        document.getElementById('myCompanyGst').value =
+            option.getAttribute('data-gst');
+
+        document.getElementById('myCompanyState').value =
+            option.getAttribute('data-state');
+
+        document.getElementById('myStateCode').value =
+            option.getAttribute('data-state-code');
+
+    } else {
+
+        document.getElementById('myCompanyName').value = '';
+        document.getElementById('myCompanyGst').value = '';
+        document.getElementById('myCompanyState').value = '';
+        document.getElementById('myStateCode').value = '';
+    }
+
     calculateTotals();
 }
 
-function removeItemRow(rowId) {
-    const row = document.getElementById(`itemRow${rowId}`);
-    if (row && document.querySelectorAll('.item-row').length > 1) {
-        row.remove();
-        updateSerialNumbers();
-        calculateTotals();
+function fillSupplierDetails() {
+
+    const select =
+        document.getElementById('supplierCompany');
+
+    const option =
+        select.options[select.selectedIndex];
+
+    if (option.value) {
+
+        document.getElementById('supplierName').value =
+            option.getAttribute('data-name');
+
+        document.getElementById('supplierGst').value =
+            option.getAttribute('data-gst');
+
+        document.getElementById('supplierState').value =
+            option.getAttribute('data-state');
+
+        document.getElementById('supplierStateCode').value =
+            option.getAttribute('data-state-code');
+
+    } else {
+
+        document.getElementById('supplierName').value = '';
+        document.getElementById('supplierGst').value = '';
+        document.getElementById('supplierState').value = '';
+        document.getElementById('supplierStateCode').value = '';
     }
+
+    calculateTotals();
 }
 
+/* =========================
+   ADD ITEM ROW
+========================= */
+
+function addItemRow() {
+
+    itemCounter++;
+
+    const container =
+        document.getElementById('itemsContainer');
+
+    const itemRow =
+        document.createElement('div');
+
+    itemRow.className = 'item-row';
+
+    itemRow.id = `itemRow${itemCounter}`;
+
+    itemRow.innerHTML = `
+
+        <div class="sno">
+            ${document.querySelectorAll('.item-row').length + 1}
+        </div>
+
+        <textarea
+            name="items[${itemCounter}][description]"
+            placeholder="Enter description of goods"
+            required
+            style="resize: vertical; min-height: 40px;"
+            onchange="calculateTotals()"></textarea>
+
+        <input
+            type="text"
+            name="items[${itemCounter}][hsn_no]"
+            placeholder="HSN No"
+            onchange="calculateTotals()">
+
+        <input
+            type="number"
+            name="items[${itemCounter}][qty]"
+            min="0"
+            step="0.01"
+            placeholder="Qty"
+            onchange="calculateTotals()">
+
+        <input
+            type="number"
+            name="items[${itemCounter}][price]"
+            min="0"
+            step="0.01"
+            placeholder="Price"
+            onchange="calculateTotals()">
+
+        <input
+            type="number"
+            class="taxable-amount"
+            name="items[${itemCounter}][taxable_amount]"
+            min="0"
+            step="0.01"
+            placeholder="Taxable Amount"
+            onchange="calculateTotals()">
+
+        <button
+            type="button"
+            class="remove-item"
+            onclick="removeItemRow(${itemCounter})"
+            title="Remove Row">
+            ×
+        </button>
+    `;
+
+    container.appendChild(itemRow);
+
+    calculateTotals();
+}
+
+/* =========================
+   REMOVE ITEM
+========================= */
+
+function removeItemRow(rowId) {
+
+    const row =
+        document.getElementById(`itemRow${rowId}`);
+
+    if (!row) return;
+
+    const totalRows =
+        document.querySelectorAll('.item-row').length;
+
+    if (totalRows <= 1) {
+
+        alert('At least one item row is required.');
+
+        return;
+    }
+
+    row.remove();
+
+    updateSerialNumbers();
+
+    calculateTotals();
+}
+
+/* =========================
+   UPDATE SERIAL NUMBERS
+========================= */
+
 function updateSerialNumbers() {
-    const rows = document.querySelectorAll('.item-row');
+
+    const rows =
+        document.querySelectorAll('.item-row');
+
     rows.forEach((row, index) => {
-        row.querySelector('.sno').textContent = index + 1;
+
+        const sno =
+            row.querySelector('.sno');
+
+        if (sno) {
+
+            sno.textContent = index + 1;
+        }
     });
 }
 
+/* =========================
+   CALCULATE TOTALS
+========================= */
+
 function calculateTotals() {
+
     let subtotal = 0;
-    const freight = parseFloat(document.getElementById('freight_charges')?.value) || 0;
 
-    // Loop through item rows
+    const freight =
+        parseFloat(
+            document.getElementById('freight_charges')?.value
+        ) || 0;
+
+    /* -------------------------
+       ITEM TAXABLE TOTAL
+    ------------------------- */
+
     document.querySelectorAll('.item-row').forEach(row => {
-        const qty = parseFloat(row.querySelector('input[name$="[qty]"]').value) || 0;
-        const price = parseFloat(row.querySelector('input[name$="[price]"]').value) || 0;
-        const taxable = qty * price;
 
-        const rowId = row.id.replace('itemRow', '');
-        row.querySelector(`#taxable${rowId}`).textContent = taxable.toFixed(2);
+        const taxableInput =
+            row.querySelector(
+                'input[name$="[taxable_amount]"]'
+            );
+
+        const taxable =
+            parseFloat(taxableInput?.value) || 0;
 
         subtotal += taxable;
     });
 
-    // Add freight to subtotal
+    /* -------------------------
+       ADD FREIGHT
+    ------------------------- */
+
     subtotal += freight;
-    document.getElementById('subtotal').value = subtotal.toFixed(2);
 
-    // State codes
-    const myStateCode = document.getElementById('myStateCode')?.value;
-    const supplierStateCode = document.getElementById('supplierStateCode')?.value;
+    document.getElementById('subtotal').value =
+        subtotal.toFixed(2);
 
-    let cgst = 0, sgst = 0, igst = 0;
+    /* -------------------------
+       GST LOGIC
+    ------------------------- */
 
-    if (supplierStateCode && myStateCode) {
+    const myStateCode =
+        document.getElementById('myStateCode')?.value;
+
+    const supplierStateCode =
+        document.getElementById('supplierStateCode')?.value;
+
+    let cgst = 0;
+    let sgst = 0;
+    let igst = 0;
+
+    if (myStateCode && supplierStateCode) {
+
         if (myStateCode === supplierStateCode) {
-            // Intra-state: CGST + SGST
+
             cgst = subtotal * 0.09;
             sgst = subtotal * 0.09;
+
         } else {
-            // Inter-state: IGST
+
             igst = subtotal * 0.18;
         }
     }
 
-    const totalTax = cgst + sgst + igst;
-    const grandTotal = subtotal + totalTax;
+    /* -------------------------
+       TOTAL TAX
+    ------------------------- */
 
-    // Update fields
-    document.getElementById('cgst').value = cgst.toFixed(2);
-    document.getElementById('sgst').value = sgst.toFixed(2);
-    document.getElementById('igst').value = igst.toFixed(2);
-    document.getElementById('totalTax').value = totalTax.toFixed(2);
-    document.getElementById('grandTotal').value = grandTotal.toFixed(2);
+    const totalTax =
+        cgst + sgst + igst;
+
+    /* -------------------------
+       GRAND TOTAL
+    ------------------------- */
+
+    const grandTotal =
+        subtotal + totalTax;
+
+    /* -------------------------
+       UPDATE FIELDS
+    ------------------------- */
+
+    document.getElementById('cgst').value =
+        cgst.toFixed(2);
+
+    document.getElementById('sgst').value =
+        sgst.toFixed(2);
+
+    document.getElementById('igst').value =
+        igst.toFixed(2);
+
+    document.getElementById('totalTax').value =
+        totalTax.toFixed(2);
+
+    document.getElementById('grandTotal').value =
+        grandTotal.toFixed(2);
 }
 
-// Attach listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const freightInput = document.getElementById('freight_charges');
-    if (freightInput) freightInput.addEventListener('input', calculateTotals);
+/* =========================
+   TAX HELPER
+========================= */
 
-    const myStateInput = document.getElementById('myStateCode');
-    if (myStateInput) myStateInput.addEventListener('change', calculateTotals);
-
-    const supplierStateInput = document.getElementById('supplierStateCode');
-    if (supplierStateInput) supplierStateInput.addEventListener('change', calculateTotals);
-
-    // Initial calculation
-    calculateTotals();
-});
 function calculateTax() {
+
     calculateTotals();
 }
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelector('input[name="invoice_date"]').value = new Date().toISOString().split('T')[0];
-    addItemRow(); // start with one row
+
+/* =========================
+   PAGE LOAD
+========================= */
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* Today's Date */
+
+    const invoiceDateInput =
+        document.querySelector(
+            'input[name="invoice_date"]'
+        );
+
+    if (invoiceDateInput) {
+
+        invoiceDateInput.value =
+            new Date()
+                .toISOString()
+                .split('T')[0];
+    }
+
+    /* Freight Listener */
+
+    const freightInput =
+        document.getElementById('freight_charges');
+
+    if (freightInput) {
+
+        freightInput.addEventListener(
+            'input',
+            calculateTotals
+        );
+    }
+
+    /* Add First Row */
+
+    addItemRow();
+
+    /* Initial Calculation */
+
+    calculateTotals();
 });
-    </script>
+</script>
 </body>
 </html>

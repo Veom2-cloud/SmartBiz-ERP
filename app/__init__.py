@@ -22,13 +22,14 @@ def create_app(test_config=None):
     Migrate(app, db)
 
     from app.auth.routes import auth_bp
-    from app.company.routes import company_bp, sales_bp, purchase_bp, backup_bp
+    from app.company.routes import company_bp, sales_bp, purchase_bp, backup_bp,inventory_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(company_bp)
     app.register_blueprint(sales_bp)
     app.register_blueprint(purchase_bp)
     app.register_blueprint(backup_bp)
+    app.register_blueprint(inventory_bp)
     with app.app_context():
         db.create_all()
 

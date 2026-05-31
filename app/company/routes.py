@@ -24,6 +24,10 @@ backup_bp = Blueprint("backup", __name__, url_prefix="/backup")
 company_bp = Blueprint('company', __name__, url_prefix='/')
 sales_bp = Blueprint('sales', __name__, url_prefix='/')
 purchase_bp = Blueprint('purchase', __name__, url_prefix='/')
+inventory_bp = Blueprint(
+    "inventory",
+    __name__
+)
 
 # ============ COMPANY ROUTES ============
 
@@ -1170,3 +1174,174 @@ def delete_quotation(quotation_id):
 
     flash(f"Quotation {quotation.quotation_number} deleted successfully!", "success")
     return redirect(url_for("sales.list_quotations"))
+
+
+# =========================
+# INVENTORY PAGE
+# =========================
+
+@inventory_bp.route("/inventory")
+def inventory_page():
+
+    items = InventoryItem.query.order_by(
+        InventoryItem.product_name.asc()
+    ).all()
+
+    return render_template(
+        "inventory.html",
+        items=items
+    )
+
+
+# =========================
+# ADD STOCK
+# =========================
+
+@inventory_bp.route(
+    "/inventory/add-stock/<int:item_id>",
+    methods=["POST"]
+)
+def add_stock(item_id):
+
+    item = InventoryItem.query.get_or_404(item_id)
+
+    qty = int(
+        request.form.get("qty", 1)
+    )
+
+    item.qty_in_stock += qty
+
+    item.last_updated = datetime.utcnow()
+
+    db.session.commit()
+
+    return redirect(
+        url_for("inventory.inventory_page")
+    )
+
+
+# =========================
+# REMOVE STOCK
+# =========================
+
+@inventory_bp.route(
+    "/inventory/remove-stock/<int:item_id>",
+    methods=["POST"]
+)
+def remove_stock(item_id):
+
+    item = InventoryItem.query.get_or_404(item_id)
+
+    qty = int(
+        request.form.get("qty", 1)
+    )
+
+    if item.qty_in_stock >= qty:
+
+        item.qty_in_stock -= qty
+
+    item.last_updated = datetime.utcnow()
+
+    db.session.commit()
+
+    return redirect(
+        url_for("inventory.inventory_page")
+    )
+
+
+# =========================
+# EDIT INVENTORY
+# =========================
+
+@inventory_bp.route(
+    "/inventory/edit/<int:item_id>",
+    methods=["POST"]
+)
+def edit_inventory(item_id):
+
+    item = InventoryItem.query.get_or_404(item_id)
+
+    item.product_name = request.form.get(
+        "product_name"
+    )
+
+    item.qty_in_stock = int(
+        request.form.get("qty_in_stock", 0)
+    )
+
+    item.unit_price = float(
+        request.form.get("unit_price", 0)
+    )
+
+    item.last_updated = datetime.utcnow()
+
+    db.session.commit()
+
+    return redirect(
+        url_for("inventory.inventory_page")
+    )
+
+
+# =========================
+# CREATE INVENTORY ITEM
+# =========================
+
+@inventory_bp.route(
+    "/inventory/create",
+    methods=["POST"]
+)
+def create_inventory_item():
+
+    item = InventoryItem(
+
+        product_name=request.form.get(
+            "product_name"
+        ),
+
+        qty_in_stock=int(
+            request.form.get(
+                "qty_in_stock",
+                0
+            )
+        ),
+
+        unit_price=float(
+            request.form.get(
+                "unit_price",
+                0
+            )
+        ),
+
+        last_updated=datetime.utcnow()
+    )
+
+    db.session.add(item)
+
+    db.session.commit()
+
+    return redirect(
+        url_for("inventory.inventory_page")
+    )
+    
+@inventory_bp.route(
+    "/inventory/delete/<int:item_id>",
+    methods=["POST"]
+)
+def delete_inventory(item_id):
+
+    item = InventoryItem.query.get_or_404(
+        item_id
+    )
+
+    db.session.delete(item)
+
+    db.session.commit()
+
+    flash(
+        "Inventory item deleted successfully!",
+        "success"
+    )
+
+    return redirect(
+        url_for("inventory.inventory_page")
+    )

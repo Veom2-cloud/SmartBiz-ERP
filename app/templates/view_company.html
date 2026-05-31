@@ -226,7 +226,7 @@ h1 {
                 <h1>{{ company.company_name }}</h1>
                 <div class="action-buttons">
                     <a href="/company/{{ company.id }}/edit" class="btn-edit">✏️ Edit</a>
-                    <button class="btn-delete" onclick="openDeleteModal()">🗑️ Delete</button>
+                  
                 </div>
             </div>
             
@@ -299,19 +299,7 @@ h1 {
     </div>
     
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <h2>Delete Company?</h2>
-            <p>Are you sure you want to delete <strong>{{ company.company_name }}</strong>? This action cannot be undone.</p>
-            <div class="modal-buttons">
-              <form action="{{ url_for('company.delete_company', id=company.id) }}" method="post">
-    <button type="submit" onclick="return confirm('Delete this company?');">Delete</button>
-</form>
-
-                <button class="cancel-delete" onclick="closeDeleteModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
+  
     
     <script>
         function openDeleteModal() {

@@ -407,7 +407,7 @@ def extract_ifsc_code(text: str) -> Optional[str]:
 
 def extract_text_from_scanned_pdf(filepath: str) -> str:
     print("\n[OCR] Running OCR on PDF...")
-    pages = convert_from_path(filepath, dpi=700, grayscale=True)
+    pages = convert_from_path(filepath, dpi=900, grayscale=True)
     text_pages = []
     for index, page in enumerate(pages):
         print(f"[OCR] Processing page {index + 1}")
@@ -580,8 +580,8 @@ def save_purchase_invoice(
 
     # --- Tax logic: IGST = inter-state; CGST+SGST = intra-state ---
     # --- Tax logic: IGST = inter-state; CGST+SGST = intra-state ---
-    cgst_val = clean_decimal(data.get("cgst")),
-    gst_val = clean_decimal(data.get("sgst"))
+    cgst_val = clean_decimal(data.get("cgst"))
+    sgst_val = clean_decimal(data.get("sgst"))
     igst_val = clean_decimal(data.get("igst"))
 
     if igst_val > 0:
@@ -891,7 +891,7 @@ OCR TEXT:
 
 if __name__ == "__main__":
 
-    filepath        = r"C:\Users\vibhu\Documents\1.pdf"
+    filepath        = r"C:\Users\vibhu\Documents\6.pdf"
     ollama_base_url = "http://localhost:11434"
     ollama_model    = "llama3"
 

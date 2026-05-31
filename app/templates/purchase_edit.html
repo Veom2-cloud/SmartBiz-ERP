@@ -102,14 +102,15 @@
     <h3>Items</h3>
     <table id="items-table">
       <thead>
-        <tr>
-          <th>Description</th>
-          <th>HSN No</th>
-          <th>Qty</th>
-          <th>Price</th>
-          <th>Taxable Amount</th>
-        </tr>
-      </thead>
+  <tr>
+    <th>Description</th>
+    <th>HSN No</th>
+    <th>Qty</th>
+    <th>Price</th>
+    <th>Taxable Amount</th>
+    <th>Action</th>
+  </tr>
+</thead>
       <tbody>
         {% for item in purchase.items %}
         <tr>
@@ -117,7 +118,7 @@
           <td><input type="text" name="items[{{ loop.index0 }}][hsn_code]" value="{{ item.hsn_no }}"></td>
           <td><input type="number" step="1" name="items[{{ loop.index0 }}][qty]" value="{{ item.qty }}"></td>
           <td><input type="number" step="0.01" name="items[{{ loop.index0 }}][price]" value="{{ item.price }}"></td>
-          <td><input type="number" step="0.01" name="items[{{ loop.index0 }}][taxable_amount]" value="{{ item.taxable_amount }}" readonly></td>
+          <td><input type="number" step="0.01" name="items[{{ loop.index0 }}][taxable_amount]" value="{{ item.taxable_amount }}"></td>
 
     <td><button type="button" onclick="removeItem(this)">×</button></td>
         </tr>
@@ -192,12 +193,10 @@ function recalcTotals() {
 
   // Calculate taxable amounts per row
   document.querySelectorAll('#items-table tbody tr').forEach(row => {
-    const qty = parseFloat(row.querySelector('[name*="[qty]"]').value) || 0;
-    const price = parseFloat(row.querySelector('[name*="[price]"]').value) || 0;
+   const taxable =
+  parseFloat(taxableInput.value) || 0;
 
-    const taxable = qty * price;
-    row.querySelector('[name*="[taxable_amount]"]').value = taxable.toFixed(2);
-    subtotal += taxable;
+subtotal += taxable;
   });
 
   // Add freight to subtotal
@@ -256,51 +255,151 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Add new item row dynamically
 function addItem() {
-  const tbody = document.querySelector('#items-table tbody');
-  const index = tbody.querySelectorAll('tr').length;
+
+  const tbody =
+    document.querySelector('#items-table tbody');
+
+  // Remove empty row if exists
+  const emptyRow = tbody.querySelector('td[colspan]');
+
+  if (emptyRow) {
+    emptyRow.closest('tr').remove();
+  }
+
+  const index =
+    tbody.querySelectorAll('tr').length;
+
   const row = document.createElement('tr');
+
   row.innerHTML = `
-    <td><input type="text" name="items[${index}][description]"></td>
-    <td><input type="text" name="items[${index}][hsn_code]"></td>
-    <td><input type="number" step="1" name="items[${index}][qty]" value="0"></td>
-    <td><input type="number" step="0.01" name="items[${index}][price]" value="0"></td>
-    <td><input type="number" step="0.01" name="items[${index}][taxable_amount]" value="0" readonly></td>
-    <td><button type="button" onclick="removeItem(this)">×</button></td>
+    <td>
+      <input type="text"
+             name="items[${index}][description]">
+    </td>
+
+    <td>
+      <input type="text"
+             name="items[${index}][hsn_code]">
+    </td>
+
+    <td>
+      <input type="number"
+             step="1"
+             name="items[${index}][qty]"
+             value="0">
+    </td>
+
+    <td>
+      <input type="number"
+             step="0.01"
+             name="items[${index}][price]"
+             value="0">
+    </td>
+
+    <td>
+      <input type="number"
+             step="0.01"
+             name="items[${index}][taxable_amount]"
+             value="0"
+             >
+    </td>
+
+    <td>
+      <button type="button"
+              onclick="removeItem(this)">
+        ×
+      </button>
+    </td>
   `;
+
   tbody.appendChild(row);
 
-  // Attach listeners for new row
-  row.querySelectorAll('input').forEach(input => input.addEventListener('input', recalcTotals));
+  row.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', recalcTotals);
+  });
 
   recalcTotals();
 }
 
 function fillCompanyDetails() {
-  const mySelect = document.getElementById('myCompanySelect');
-  const supplierSelect = document.getElementById('supplierCompanySelect');
 
-  const myState = mySelect.options[mySelect.selectedIndex]?.dataset.state;
-  const supplierState = supplierSelect.options[supplierSelect.selectedIndex]?.dataset.state;
+  const mySelect =
+    document.getElementById('myCompanySelect');
 
-  document.getElementById('myStateCode').value = myState || '';
-  document.getElementById('supplierStateCode').value = supplierState || '';
+  const supplierSelect =
+    document.getElementById('supplierCompanySelect');
+
+  const myOption =
+    mySelect.options[mySelect.selectedIndex];
+
+  const supplierOption =
+    supplierSelect.options[supplierSelect.selectedIndex];
+
+  document.getElementById('myStateCode').value =
+    myOption.dataset.state || '';
+
+  document.getElementById('supplierStateCode').value =
+    supplierOption.dataset.state || '';
 
   recalcTotals();
 }
-
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('myCompanySelect').addEventListener('change', fillCompanyDetails);
-  document.getElementById('supplierCompanySelect').addEventListener('change', fillCompanyDetails);
 
-  // Run once on load
+  document
+    .getElementById('myCompanySelect')
+    .addEventListener('change', fillCompanyDetails);
+
+  document
+    .getElementById('supplierCompanySelect')
+    .addEventListener('change', fillCompanyDetails);
+
+  document.querySelectorAll('#items-table input')
+    .forEach(input => {
+      input.addEventListener('input', recalcTotals);
+    });
+
+  const freightInput =
+    document.getElementById('freight_charges');
+
+  if (freightInput) {
+    freightInput.addEventListener('input', recalcTotals);
+  }
+
   fillCompanyDetails();
+
+  recalcTotals();
 });
 
 // Remove item row
 function removeItem(button) {
+
   const row = button.closest('tr');
+
   row.remove();
+
+  reindexItems();
+
   recalcTotals();
+}
+
+function reindexItems() {
+
+  const rows = document.querySelectorAll('#items-table tbody tr');
+
+  rows.forEach((row, index) => {
+
+    row.querySelectorAll('input').forEach(input => {
+
+      const name = input.getAttribute('name');
+
+      if (!name) return;
+
+      const updatedName =
+        name.replace(/items\[\d+\]/, `items[${index}]`);
+
+      input.setAttribute('name', updatedName);
+    });
+  });
 }
 </script>
 
